@@ -16,8 +16,8 @@ export default function MenuScreen() {
                 return(
                     <View style={styles.botonesContainer}>
                         <Text style={styles.titulo}>Menu de Screen de Ahorro+ App</Text>
-                        <Button title='Login Screen' onPress={()=>setScreen('login')}/>
-                        <Button title='Registro Screen' onPress={()=>setScreen('registro')}/>
+                        <Button color="#a18b1cff" title='Login Screen' onPress={()=>setScreen('login')}/>
+                        <Button  color="#a18b1cff" title='Registro Screen' onPress={()=>setScreen('registro')}/>
                     </View>
                 )
     }
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       gap: 30,
-      backgroundColor: '#2e2e2eff',
+      backgroundColor: '#181818ff',
   },
   titulo:{
     color: 'white',
