@@ -9,7 +9,7 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.container}>
       
         <StatusBar barStyle="dark-content" backgroundColor="#ffffffff"></StatusBar>
-        <View style={styles.headerContainer}>
+        <View >
                 <Text style={styles.maintitle}>Ahorra +</Text>
                 <Text style={styles.subtitle}>Controla tus finanzas personales</Text>
         </View>
