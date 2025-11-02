@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity,Image,ScrollView } from 'react-native';
+
+const ImagenGrafica = require('../assets/imagen/grafica.png');
+const inicio = require('../assets/imagen/house.png');
+const transaciones = require('../assets/imagen/dollar.png');
+const grafica = require('../assets/imagen/stats.png');
+const perfil = require('../assets/imagen/user.png');
 
 export default function PantallaGraficas() {
   const [activo, setActivo] = useState('gastos');
@@ -29,11 +35,21 @@ export default function PantallaGraficas() {
           </TouchableOpacity>
         </View>
       </View>
+      <ScrollView contentContainerStyle={styles.scrollContenido}>
        <View style={styles.contenedor2}>
-           <Text style={styles.contenedorTitulo}>Gastos por Categoría</Text>
+           <Text style={styles.tituloGrafica}>Gastos por Categoría</Text>
            <Text style={styles.dinero}> $2,500</Text>
            <Text >Total de gastos este mes</Text>
+           <Image source={ImagenGrafica} style={styles.imagen}/>
         </View>
+        
+      </ScrollView>
+      <View style={styles.contenedor3}>
+         <Image source={inicio} style={styles.navegacion}/>
+         <Image source={transaciones} style={styles.navegacion}/>
+         <Image source={grafica} style={styles.navegacion}/>
+         <Image source={perfil} style={styles.navegacion}/>
+      </View>
     </View>
   );
 }
@@ -42,15 +58,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#e5dcb9ff',
+  },scrollContenido: {
+    paddingBottom: 40, 
+    flexGrow:1
   },
   contenedor2:{
-   marginTop:50,
+   marginTop:40,
    backgroundColor:'#ffffffff',
    justifyContent:"center",
    alignItems:"center",
-   marginLeft:"20",
-   marginRight:"20",
+   marginLeft:20,
+   marginRight:20,
    borderRadius:14,
+   paddingTop:10,
+   justifyContent:"flex-start",
   },
   titulo: {
     width: '100%',
@@ -94,5 +115,28 @@ const styles = StyleSheet.create({
   },dinero:{
     color:"#E4B100",
     fontSize:30,
+    padding:10
+  },imagen:{
+    marginTop:20,
+    width:"90%",
+    height:300,
+    resizeMode:"contain",
+    marginBottom:20
+  },tituloGrafica:{
+    fontSize:20,
+    fontWeight:"bold",
+    marginBottom:0
+  },contenedor3:{
+    height: 100,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems:"flex-start",
+    paddingTop:40,
+    paddingLeft:30,
+    paddingRight:30
+  },navegacion:{
+    width:"30%",
+    height:"40%",
+    resizeMode:"contain"
   }
 });
