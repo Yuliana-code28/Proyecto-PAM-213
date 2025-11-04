@@ -3,7 +3,9 @@ import React, { useState } from 'react'
 import LoginScreen from './LoginScreen';
 import RegistroScreen from './RegistroScreen';
 import PantallaGraficas from './PantallaGraficas';
+import TransaccionesScreen from './TransaccionesScreen';
 export default function MenuScreen() {
+    
     const [screen, setScreen] = useState('menu');
 
     switch(screen){
@@ -13,6 +15,8 @@ export default function MenuScreen() {
             return <RegistroScreen/>
         case 'graficas':
             return <PantallaGraficas/>
+        case 'transacciones':
+            return <TransaccionesScreen/>
         case 'menu':
             default:
                 return(
@@ -20,7 +24,8 @@ export default function MenuScreen() {
                         <Text style={styles.titulo}>Menu de Screen de Ahorro+ App</Text>
                         <Button color="#a18b1cff" title='Login Screen' onPress={()=>setScreen('login')}/>
                         <Button  color="#a18b1cff" title='Registro Screen' onPress={()=>setScreen('registro')}/>
-                        <Button color="#a18b1cff" title='Graficas' onPress={()=> setScreen('graficas') }/>
+                        <Button color="#a18b1cff" title='Graficas Screen' onPress={()=> setScreen('graficas') }/>
+                        <Button color="#a18b1cff" title='Transacciones Screen' onPress={()=> setScreen('transacciones') }/>
                     </View>
                 )
     }
