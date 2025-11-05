@@ -6,6 +6,7 @@ import PantallaGraficas from './PantallaGraficas';
 import TransaccionesScreen from './TransaccionesScreen';
 import DashboardScreen from './DashboardScreen';
 import PerfilScreen from './PerfilScreen';
+import RestablecerScreen from './RestablecerScreen';
 export default function MenuScreen() {
     
     const [screen, setScreen] = useState('menu');
@@ -23,6 +24,8 @@ export default function MenuScreen() {
             return <DashboardScreen/>
         case 'perfil':
             return <PerfilScreen/>
+        case 'restablecer':
+            return <RestablecerScreen/>
         case 'menu':
             default:
                 return(
@@ -57,6 +60,9 @@ export default function MenuScreen() {
                         <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('perfil')}>
                             <Text style={styles.textoBotonMenu}>Perfil Screen</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('restablecer')}>
+                            <Text style={styles.textoBotonMenu}>Restablecer Contraseña</Text>
+                        </TouchableOpacity>
                         </View>
                 )
     }
@@ -78,8 +84,10 @@ container: {
     textAlign: 'center',
   },
   subtitulo: {
-    fontSize: 18,
-    color: '#555',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#3a3a3aff',
     fontStyle: 'italic',
     marginBottom: 30,
   },

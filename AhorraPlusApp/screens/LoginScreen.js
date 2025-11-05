@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
-
 export default function LoginScreen() {
     const [correo, setCorreo] = useState('');
     const[contraseña, setContraseña]= useState(''); 
