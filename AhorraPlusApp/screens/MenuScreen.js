@@ -5,6 +5,7 @@ import RegistroScreen from './RegistroScreen';
 import PantallaGraficas from './PantallaGraficas';
 import TransaccionesScreen from './TransaccionesScreen';
 import DashboardScreen from './DashboardScreen';
+import PerfilScreen from './PerfilScreen';
 export default function MenuScreen() {
     
     const [screen, setScreen] = useState('menu');
@@ -20,6 +21,8 @@ export default function MenuScreen() {
             return <TransaccionesScreen/>
         case 'dashboard':
             return <DashboardScreen/>
+        case 'perfil':
+            return <PerfilScreen/>
         case 'menu':
             default:
                 return(
@@ -30,6 +33,7 @@ export default function MenuScreen() {
                         <Button color="#a18b1cff" title='DashBoard Screen' onPress={() => setScreen('dashboard')}/>
                         <Button color="#a18b1cff" title='Graficas Screen' onPress={()=> setScreen('graficas') }/>
                         <Button color="#a18b1cff" title='Transacciones Screen' onPress={()=> setScreen('transacciones') }/>
+                        <Button color="#a18b1cff" title='Perfil Screen' onPress={()=> setScreen('perfil') }/>
                     </View>
                 )
     }

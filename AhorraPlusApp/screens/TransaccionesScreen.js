@@ -4,9 +4,9 @@ import { Text,View,StyleSheet, Image,TouchableOpacity,ScrollView,Alert} from 're
 const flecha = require('../assets/imagen/flec.png');
 const filtro = require('../assets/imagen/filtrar.png');
 const busquedaImagen = require('../assets/imagen/buscar.png')
-const inicio = require('../assets/imagen/house.png');
-const transaciones = require('../assets/imagen/dollar.png');
-const grafica = require('../assets/imagen/stats.png');
+const inicio = require('../assets/imagen/casa.png');
+const transaciones = require('../assets/imagen/trans.png');
+const grafica = require('../assets/imagen/grafico.png');
 const perfil = require('../assets/imagen/user.png');
 const restaurante = require('../assets/imagen/restaurante.png');
 const pagoMensual = require('../assets/imagen/dolar.png')
