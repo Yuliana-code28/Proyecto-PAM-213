@@ -4,9 +4,9 @@ import { Text, View, StyleSheet, TouchableOpacity,Image,ScrollView,TextInput,Ale
 const flecha = require('../assets/imagen/flec.png');
 const maleta = require('../assets/imagen/maleta.png');
 const ImagenGrafica = require('../assets/imagen/grafica.png');
-const inicio = require('../assets/imagen/house.png');
-const transaciones = require('../assets/imagen/dollar.png');
-const grafica = require('../assets/imagen/stats.png');
+const inicio = require('../assets/imagen/casa.png');
+const transIcono = require('../assets/imagen/trans.png')
+const grafica = require('../assets/imagen/grafico.png');
 const perfil = require('../assets/imagen/user.png');
 const GraficaIngresoyEgresos = require('../assets/imagen/grafica2.png');
 
@@ -151,7 +151,7 @@ export default function PantallaGraficas() {
          <Text style={styles.TextoIcono}>Inicio</Text>
         </View>
         <View style={styles.TextoYIcono}>
-         <Image source={transaciones} style={styles.navegacion}/>
+         <Image source={transIcono} style={styles.navegacion}/>
          <Text style={styles.TextoIcono} >Transaciones</Text>
         </View>
         <View style={styles.TextoYIcono}>
