@@ -1,5 +1,5 @@
 import React,{useState} from 'react'
-import { Text,View,StyleSheet, Image,TouchableOpacity,ScrollView,Alert} from 'react-native'
+import { Text,View,StyleSheet, Image,TouchableOpacity,ScrollView,Alert,Modal,TextInput} from 'react-native'
 
 const flecha = require('../assets/imagen/flec.png');
 const filtro = require('../assets/imagen/filtrar.png');
@@ -16,10 +16,21 @@ export default function TransaccionesScreen() {
   
   const [activoTipo, setActivoTipo] = useState('');
   const [categoria,setCategoria] = useState('');
-
+  const [modalVisible, setModalVisible] = useState(false);
+  const [inputTransaccion,setTransaccion] = useState('');
+  const [inputCategoria,setInputCategoria] = useState('');
+  const [inputMonto,setMonto] = useState();
 
   const NotificacionDeEliminar = ()=>{
      Alert.alert("Eliminar Transacción","¿Estas seguro de eliminar esta trasacción?",[{text:"Aceptar"},{text:"Cancelar"}]);
+  }
+  const guardarDatos = ()=>{
+    if(inputTransaccion.trim() === "" || inputMonto === 0 || inputCategoria.trim() === ""){
+      Alert.alert("Error en los Campos","Ingrese los datos devuelta",[{text:"Aceptar"}])
+    }else{
+       Alert.alert("Datos Envidados","Se enviaron Correctamente los Datos",[{text:"Aceptar",onPress:()=> setModalVisible(false)}])
+    }
+    
   }
   return (
     <View style={styles.container}>
@@ -113,7 +124,8 @@ export default function TransaccionesScreen() {
               <Text style={styles.textoTransaccionCategoria}>Comida  2024-01-15</Text>
               <Text style={styles.dineroComida}>-$150.00</Text>
             <View style={styles.contenedorBotonesEliminaryEditar}>
-              <TouchableOpacity style={styles.botonEditar}>
+              <TouchableOpacity style={styles.botonEditar}
+              onPress={()=>setModalVisible(true)}>
                 <Text style={styles.textoEditar}>Editar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.botonEliminar} onPress={NotificacionDeEliminar}>
@@ -128,7 +140,7 @@ export default function TransaccionesScreen() {
               <Text style={styles.dineroSalario}>+$4,000.0</Text>
             <View style={styles.contenedorBotonesEliminaryEditar}>
               <TouchableOpacity style={styles.botonEditar}>
-                <Text style={styles.textoEditar}>Editar</Text>
+                <Text style={styles.textoEditar}  onPress={()=>setModalVisible(true)}>Editar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.botonEliminar} onPress={NotificacionDeEliminar}>
                 <Text style={styles.textoEliminar}>Eliminar</Text>
@@ -141,7 +153,7 @@ export default function TransaccionesScreen() {
               <Text style={styles.textoTransaccionCategoria}>Transporte 2024-01-13</Text>
               <Text style={styles.dineroComida}>-$400.00</Text>
             <View style={styles.contenedorBotonesEliminaryEditar}>
-              <TouchableOpacity style={styles.botonEditar}>
+              <TouchableOpacity style={styles.botonEditar}  onPress={()=>setModalVisible(true)}>
                 <Text style={styles.textoEditar}>Editar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.botonEliminar} onPress={NotificacionDeEliminar}>
@@ -170,6 +182,49 @@ export default function TransaccionesScreen() {
                 <Text style={styles.TextoIcono}>Perfil</Text>
             </View>
             </View>
+        <Modal 
+        animationType='none'
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={()=> setModalVisible(false)}>
+             <View style={styles.modalContainer}> 
+                <View style={styles.modalContenido}>
+                   <Text style={styles.editarTransaccion}>Editar Transaccion</Text>
+                   <TextInput
+                    style={styles.input}
+                    placeholder="Nombre de la transacción"
+                    placeholderTextColor="#888"
+                    value={inputTransaccion}
+                    onChangeText={setTransaccion}
+                    />
+                   <TextInput
+                    style={styles.input}
+                    placeholder="Categoría transacción"
+                    placeholderTextColor="#888"
+                    value={inputCategoria}
+                    onChangeText={setInputCategoria}
+                    />
+                    <TextInput
+                    style={styles.input}
+                    placeholder="Presupuesto"
+                    placeholderTextColor="#888"
+                    keyboardType='numeric'
+                    value={inputMonto}
+                    onChangeText={setMonto}
+                    />
+                    <View style={styles.modalBotones}>
+                                
+                    <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={()=>setModalVisible(false)}>
+                        <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+                     </TouchableOpacity>
+                                
+                    <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={guardarDatos}>
+                         <Text style={styles.botonGuardarTexto}>Guardar</Text>
+                    </TouchableOpacity>
+                   </View>
+                </View>
+             </View>
+        </Modal>
      </View>
   )
 }
@@ -339,6 +394,55 @@ const styles = StyleSheet.create({
     marginTop:30,
     fontSize:20,
     color:"#9ad654ff",
-  }
+  },modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},modalContenido: {
+  backgroundColor: '#fff',
+  width: '85%',
+  borderRadius: 15,
+  padding: 20,
+  alignItems: 'center',
+},editarTransaccion:{
+  fontSize:20,
+  fontWeight:"bold"
+},input:{
+  borderWidth:1,
+  borderColor:"black",
+  marginTop:20,
+  width:"100%",
+  borderRadius:5
+},modalBotones: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  width: '100%',
+  marginTop:40
+},
+ botonBase: {
+  flex: 1,
+  paddingVertical: 12,
+  borderRadius: 8,
+  alignItems: 'center',
+  marginHorizontal: 5,
+ },
+botonGuardar: {
+  backgroundColor: '#d8c242ff', 
+ },
+  botonGuardarTexto: {
+  color: '#000000ff',
+  fontWeight: 'bold',
+  fontSize: 16,
+ },botonCancelar: {
+   backgroundColor: '#f3f4f6',
+   borderWidth: 1,
+   borderColor: '#ccc',
+ },
+botonCancelarTexto: {
+  color: '#333',
+  fontWeight: 'bold',
+   fontSize: 16,
+}
 });
 
