@@ -206,7 +206,7 @@ export default function TransaccionesScreen() {
                     />
                     <TextInput
                     style={styles.input}
-                    placeholder="Presupuesto"
+                    placeholder="Monto"
                     placeholderTextColor="#888"
                     keyboardType='numeric'
                     value={inputMonto}
