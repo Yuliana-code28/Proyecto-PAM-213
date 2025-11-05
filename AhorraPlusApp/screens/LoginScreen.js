@@ -1,10 +1,58 @@
 import React, {useState} from 'react'
-import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch } from 'react-native'
+import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
 
 export default function LoginScreen() {
     const [correo, setCorreo] = useState('');
     const[contraseña, setContraseña]= useState(''); 
-    const [terminos, setTerminos] = useState(false); //estado para el switch
+    const [terminos, setTerminos] = useState(false); 
+
+  const MostrarAlerta = () => {
+    if (correo.trim() === '' || contraseña.trim() === '') {
+      if (Platform.OS === 'web') {
+        alert('Por favor, escribe tu correo electrónico y contraseña para continuar.');
+      } else {
+        Alert.alert(
+          'Error',
+          'Por favor, escribe tu correo electrónico y contraseña para continuar.',
+          [
+            { text: 'Cancelar' },
+            { text: 'Aceptar' }
+          ]
+        );
+      }
+      return;
+    }
+
+    if (!terminos) {
+      if (Platform.OS === 'web') {
+        alert('Favor de aceptar los términos y condiciones para poder continuar.');
+      } else {
+        Alert.alert(
+          'Terminos no aceptados',
+          'Favor de aceptar los términos y condiciones para poder continuar.',
+          [
+            { text: 'Cancelar' },
+            { text: 'Aceptar' }
+          ]
+        );
+      }
+      return; 
+    }
+
+    if (Platform.OS === 'web') {
+      alert(`Bienvenido, ${correo}`);
+    } else {
+      Alert.alert(
+        'Iniciar sesión exitoso',
+        `Bienvenido, ${correo}`,
+        [
+          { text: 'Cancelar' },
+          { text: 'Aceptar' }
+        ]
+      );
+    }
+  };
+
     return (
       <ScrollView contentContainerStyle={styles.container}>
       
@@ -42,8 +90,7 @@ export default function LoginScreen() {
           <Text style={styles.Text}>Olvidé mi contraseña</Text>
         </TouchableOpacity>
       </View>
-      
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity style={styles.loginButton} onPress={MostrarAlerta}>
         <Text style={styles.loginButtonText}>Iniciar sesión</Text>
       </TouchableOpacity>
       
@@ -54,6 +101,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
       </View>
+
 </ScrollView>
     
     );
