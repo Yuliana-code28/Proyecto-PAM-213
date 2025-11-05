@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch } from 'react-native'
+import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
 
 export default function RegistroScreen() {
     const [nombre, setNombre] = useState('');
@@ -7,6 +7,50 @@ export default function RegistroScreen() {
     const [contraseña, setContraseña] = useState('');
     const [confirmar, setConfirmar] = useState('');
     const [terminos, setTerminos] = useState(false); 
+      const MostrarAlerta= () =>{
+    if(nombre.trim() === '' || correo.trim() === '' || contraseña.trim() === '' || confirmar.trim() === ''){ 
+      if(Platform.OS === 'web'){ 
+        alert('Por favor, escribe tu nombre, correo electronico y contraseña para continuar. '); 
+    }else{  
+      Alert.alert( 
+        'Atención',
+        'Por favor, escribe tu nombre, correo electronico y contraseña antes de continuar',
+        [
+          {text: 'cancelar'},
+          {text: 'aceptar'}
+        ]
+      );
+    }
+    return;
+  }
+   if (!terminos) {
+        if (Platform.OS === 'web') {
+          alert('Favor de aceptar los términos y condiciones para poder continuar.');
+        } else {
+          Alert.alert(
+            'Terminos no aceptados',
+            'Favor de aceptar los términos y condiciones para poder continuar.',
+            [
+              { text: 'Cancelar' },
+              { text: 'Aceptar' }
+            ]
+          );
+        }
+        return; 
+  }
+  
+  if(Platform.OS === 'web'){
+      alert(`Bienvenido, ${nombre} !`);
+  }else{
+    Alert.alert(
+      'Hola', `Bienvenido, ${nombre}`, 
+      [
+        {text: 'cancelar'},
+        {text: 'aceptar'}
+      ]
+    );
+  }
+}
 
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -48,7 +92,7 @@ export default function RegistroScreen() {
               <Switch value={terminos} onValueChange={() => setTerminos(!terminos)} />
             </View>
 
-            <TouchableOpacity style={styles.singUpButton}>
+            <TouchableOpacity style={styles.singUpButton} onPress={MostrarAlerta}>
               <Text style={styles.singUpButtonText}>Iniciar sesión</Text>
             </TouchableOpacity>
 
