@@ -1,21 +1,116 @@
-import React  from 'react';
-import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Image} from 'react-native';
+import React, {useState}  from 'react';
+import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Modal,TextInput,Alert,Image} from 'react-native';
 
-const campanaIcono = require('../assets/imagen/campana.png')
-const agregarIcono = require('../assets/imagen/agregar.png')
-const transIcono = require('../assets/imagen/trans.png')
-const pagarIcono = require('../assets/imagen/pagar.png')
-const masIcono = require('../assets/imagen/mas.png')
+const campanaIcono = require('../assets/imagen/campana.png');
+const agregarIcono = require('../assets/imagen/agregar.png');
+const transIcono = require('../assets/imagen/trans.png');
+const pagarIcono = require('../assets/imagen/pagar.png');
+const presupuestoIcono = require('../assets/imagen/presupuesto.png');
 const inicio = require('../assets/imagen/casa.png');
 const grafica = require('../assets/imagen/grafico.png');
 const perfil = require('../assets/imagen/user.png');
 
 export default function DashboardScreen() {
 
+    const [modalVisible,setModalVisible] = useState(false);
+    const [descripcion,setDescripcion] = useState('');
+    const [monto,setMonto] = useState('');
+    const [gasto, setGasto] = useState(true); //True = Gasto False = Ingreso
+
+    const [presupuestomodalVisible,setPresupuestoModalVisible] = useState(false);
+    const [montoPresupuesto,setMontoPresupuesto] =useState('');
+
+    const botonGuardar = () => {
+        if (!descripcion || !monto) {
+            Alert.alert('Error', 'Por favor completa todos los campos');
+            return;
+        }
+
+        Alert.alert('Exito',`Transacción guardada: ${descripcion} por $${monto}`);
+        botonCerrar();
+    };
+    const botonCerrar = () => {setModalVisible(false); setDescripcion(''); setMonto(''); setGasto(true);};
+
+    const botonGuardarPresupuesto = () => {
+        if (!montoPresupuesto) {
+            Alert.alert('Error', 'Por favor ingresa un monto de presupuesto');
+            return;
+        }
+
+        Alert.alert('Exito',`Presupuesto mensual guardado: $${montoPresupuesto}`);
+        botonCerrar();
+    };
+    const botonCerrarPresupuesto = () => {setPresupuestoModalVisible(false);setMontoPresupuesto('');};
 
     return(
         <View style={styles.main}>
         
+        <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={botonCerrar}>
+        
+        <View style={styles.modalContenedor}>
+          
+          <View style={styles.modalVista}>
+            
+            <Text style={styles.modalTitulo}>Agregar Transacción</Text>
+
+            <TextInput style={styles.modalInput} placeholder="Descripción" placeholderTextColor="#888" value={descripcion} onChangeText={setDescripcion}/>
+            <TextInput style={styles.modalInput} placeholder="Monto" placeholderTextColor="#888" keyboardType="numeric" value={monto} onChangeText={setMonto}/>
+
+            <View style={styles.switchContenedor}>
+              
+              <Text style={[ styles.switchTexto, !gasto && styles.switchTextoActivoVerde]}>Ingreso</Text>
+              
+              <Switch trackColor={{ false: '#DCFCE7', true: '#FEE2E2' }} thumbColor={gasto ? '#EF4444' : '#22C55E'} onValueChange={() => setGasto(!gasto)} value={gasto}/>
+              
+              <Text style={[styles.switchTexto, gasto && styles.switchTextoActivoRojo]}>Gasto</Text>
+            </View>
+
+            <View style={styles.modalBotones}>
+              
+              <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrar}>
+                <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardar}>
+                <Text style={styles.botonGuardarTexto}>Guardar</Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+
+        </View>
+
+        </Modal>
+
+        <Modal animationType="slide" transparent={true} visible={presupuestomodalVisible} onRequestClose={botonCerrarPresupuesto}>
+        
+        <View style={styles.modalContenedor}>
+
+          <View style={styles.modalVista}>
+
+            <Text style={styles.modalTitulo}>Definir Presupuesto</Text>
+
+            <TextInput style={styles.modalInput} placeholder="Monto del presupuesto (Ej: $5000)" placeholderTextColor="#888" keyboardType="numeric" value={montoPresupuesto} onChangeText={setMontoPresupuesto}/>
+
+            <View style={styles.modalBotones}>
+
+              <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrarPresupuesto}>
+                <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardarPresupuesto}>
+                <Text style={styles.botonGuardarTexto}>Guardar</Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+
+        </View>
+
+        </Modal>
+
         <ScrollView contentContainerStyle={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor='#e5dcb9ff'/>
 
@@ -48,7 +143,7 @@ export default function DashboardScreen() {
             </View>
 
             <View style={styles.crudRow}>
-                <TouchableOpacity style={styles.accionBoton}>
+                <TouchableOpacity style={styles.accionBoton} onPress={() => setModalVisible(true)}>
                     <Image source={agregarIcono} style={styles.campanaIcono}/>
                     <Text style={styles.accionTexto}>Agregar</Text>
                 </TouchableOpacity>
@@ -63,17 +158,15 @@ export default function DashboardScreen() {
                     <Text style={styles.accionTexto}>Pagar</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.accionBoton}>
-                    <Image source={masIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Más</Text>
+                <TouchableOpacity style={styles.accionBoton} onPress={() => setPresupuestoModalVisible(true)}>
+                    <Image source={presupuestoIcono} style={styles.campanaIcono}/>
+                    <Text style={styles.accionTexto}>Presupuesto</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.transferencia}>
                 <Text style={styles.tituloTrans}>Transacciones Recientes</Text>
-                <TouchableOpacity>
-                    <Text style={styles.verTrans}>Ver todas</Text>
-                </TouchableOpacity>
+                
             </View>
 
             <View style={styles.transZona}>
@@ -344,5 +437,86 @@ const styles = StyleSheet.create({
         width:"30%",
         height:"40%",
         resizeMode:"contain"
+    },
+    modalContenedor: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalVista: {
+        width: '90%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        elevation: 5,
+    },
+    modalTitulo: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#000',
+    },
+    modalInput: {
+        width: '100%',
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 15,
+        marginBottom: 16,
+        backgroundColor: '#fff',
+        color: '#000',
+    },
+    switchContenedor: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+    },
+    switchTexto: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginHorizontal: 10,
+        color: '#888',
+    },
+    switchTextoActivoVerde: {
+        color: '#22C55E',
+        fontWeight: 'bold',
+    },
+    switchTextoActivoRojo: {
+        color: '#EF4444',
+        fontWeight: 'bold',
+    },
+    modalBotones: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    botonBase: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    botonGuardar: {
+        backgroundColor: '#d8c242ff', 
+    },
+    botonGuardarTexto: {
+        color: '#000000ff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    botonCancelar: {
+        backgroundColor: '#f3f4f6',
+        borderWidth: 1,
+        borderColor: '#ccc',
+    },
+    botonCancelarTexto: {
+        color: '#333',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
 });
