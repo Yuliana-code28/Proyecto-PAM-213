@@ -1,5 +1,5 @@
-import { Text, StyleSheet, View, Button } from 'react-native'
 import React, { useState } from 'react'
+import { Text, StyleSheet, View, TouchableOpacity,StatusBar } from 'react-native'
 import LoginScreen from './LoginScreen';
 import RegistroScreen from './RegistroScreen';
 import PantallaGraficas from './PantallaGraficas';
@@ -26,32 +26,74 @@ export default function MenuScreen() {
         case 'menu':
             default:
                 return(
-                    <View style={styles.botonesContainer}>
-                        <Text style={styles.titulo}>Menu de Screen de Ahorro+ App</Text>
-                        <Button color="#a18b1cff" title='Login Screen' onPress={()=>setScreen('login')}/>
-                        <Button color="#a18b1cff" title='Registro Screen' onPress={()=>setScreen('registro')}/>
-                        <Button color="#a18b1cff" title='DashBoard Screen' onPress={() => setScreen('dashboard')}/>
-                        <Button color="#a18b1cff" title='Graficas Screen' onPress={()=> setScreen('graficas') }/>
-                        <Button color="#a18b1cff" title='Transacciones Screen' onPress={()=> setScreen('transacciones') }/>
-                        <Button color="#a18b1cff" title='Perfil Screen' onPress={()=> setScreen('perfil') }/>
-                    </View>
+                    <View style={styles.container}>
+
+                        <StatusBar barStyle="dark-content" backgroundColor="#e5dcb9ff" />
+
+                        <Text style={styles.titulo}>Menú de Pantallas</Text>
+
+                        <Text style={styles.subtitulo}>Ahorro+ App</Text>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('login')}>
+                            <Text style={styles.textoBotonMenu}>Login Screen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('registro')}>
+                            <Text style={styles.textoBotonMenu}>Registro Screen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('dashboard')}>
+                            <Text style={styles.textoBotonMenu}>Dashboard Screen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('transacciones')}>
+                            <Text style={styles.textoBotonMenu}>Transacciones Screen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('graficas')}>
+                            <Text style={styles.textoBotonMenu}>Graficas Screen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.botonMenu} onPress={() => setScreen('perfil')}>
+                            <Text style={styles.textoBotonMenu}>Perfil Screen</Text>
+                        </TouchableOpacity>
+                        </View>
                 )
     }
 }
 
 const styles = StyleSheet.create({
-  botonesContainer:{
-      flex: 1,
-      marginTop: 15,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 30,
-      backgroundColor: '#181818ff',
+container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    backgroundColor: '#e5dcb9ff',
   },
-  titulo:{
-    color: 'white',
-    fontSize: 20,
+  titulo: {
+    color: '#000000ff',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 10,
+    textAlign: 'center',
   },
-})
+  subtitulo: {
+    fontSize: 18,
+    color: '#555',
+    fontStyle: 'italic',
+    marginBottom: 30,
+  },
+  botonMenu: {
+    backgroundColor: '#d8c242ff',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '80%',
+    elevation: 3,
+  },
+  textoBotonMenu: {
+    color: '#000000ff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
