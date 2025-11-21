@@ -19,7 +19,7 @@ function MainTabs() {
   return (
     <Tab.Navigator screenOptions= {({route}) => ({
       headerShown: false,
-      tabBarActiveTintColor: '#d8c24ff',
+      tabBarActiveTintColor: '#d8c24f',
       tabBarInactiveTintColor: 'gray',
       tabBarIcon: ({focused, color, size }) => {
         let iconsource;
