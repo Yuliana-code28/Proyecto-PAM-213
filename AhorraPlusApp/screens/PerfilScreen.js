@@ -119,27 +119,6 @@ export default function PerfilScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.barraNavegacion}>
-        <View style={styles.itemNavegacion}>
-          <Image source={inicio} style={styles.iconoNavegacion} />
-          <Text style={styles.textoNavegacion}>Inicio</Text>
-        </View>
-
-        <View style={styles.itemNavegacion}>
-          <Image source={transIcono} style={styles.iconoNavegacion} />
-          <Text style={styles.textoNavegacion}>Transaciones</Text>
-        </View>
-
-        <View style={styles.itemNavegacion}>
-          <Image source={grafica} style={styles.iconoNavegacion} />
-          <Text style={styles.textoNavegacion}>Grafica</Text>
-        </View>
-
-        <View style={styles.itemNavegacion}>
-          <Image source={perfil} style={styles.iconoNavegacion} />
-          <Text style={styles.textoNavegacion}>Perfil</Text>
-        </View>
-      </View>
     </View>
   );
 }

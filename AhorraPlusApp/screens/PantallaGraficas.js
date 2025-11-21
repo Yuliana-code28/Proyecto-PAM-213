@@ -145,24 +145,7 @@ export default function PantallaGraficas() {
       </View>
       </ScrollView>
       )}
-      <View style={styles.contenedor3}>
-        <View style={styles.TextoYIcono}>
-         <Image source={inicio} style={styles.navegacion}/>
-         <Text style={styles.TextoIcono}>Inicio</Text>
-        </View>
-        <View style={styles.TextoYIcono}>
-         <Image source={transIcono} style={styles.navegacion}/>
-         <Text style={styles.TextoIcono} >Transaciones</Text>
-        </View>
-        <View style={styles.TextoYIcono}>
-         <Image source={grafica} style={styles.navegacion}/>
-         <Text style={styles.TextoIcono}>Grafica</Text>
-        </View>
-        <View style={styles.TextoYIcono}>
-         <Image source={perfil} style={styles.navegacion}/>
-         <Text style={styles.TextoIcono}>Perfil</Text>
-        </View>
-      </View>
+      
     </View>
   );
 }

@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
 
-export default function RestablecerScreen() {
+export default function RestablecerScreen({navigation}) {
 const [contraseña, setContraseña] = useState('');
 const [confirmar, setConfirmar] = useState('');
 const MostrarAlerta = () => {
@@ -39,13 +39,14 @@ const MostrarAlerta = () => {
 
   if (Platform.OS === 'web') {
     alert('Contraseña cambiada exitosamente !');
+    navigation.navigate('Login');
   } else {
     Alert.alert(
       'Acción completada',
       'Contraseña cambiada exitosamente',
       [
         { text: 'cancelar' },
-        { text: 'aceptar' }
+        { text: 'aceptar', onPress: () => navigation.navigate('Login') }
       ]
     );
   }

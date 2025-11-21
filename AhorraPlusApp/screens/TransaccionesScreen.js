@@ -164,24 +164,7 @@ export default function TransaccionesScreen() {
          </View>
       </ScrollView>
 
-         <View style={styles.contenedor3}>
-           <View style={styles.TextoYIcono}>
-             <Image source={inicio} style={styles.navegacion}/>
-             <Text style={styles.TextoIcono}>Inicio</Text>
-           </View>
-         <View style={styles.TextoYIcono}>
-              <Image source={transaciones} style={styles.navegacion}/>
-              <Text style={styles.TextoIcono} >Transaciones</Text>
-          </View>
-          <View style={styles.TextoYIcono}>
-               <Image source={grafica} style={styles.navegacion}/>
-               <Text style={styles.TextoIcono}>Grafica</Text>
-           </View>
-           <View style={styles.TextoYIcono}>
-                <Image source={perfil} style={styles.navegacion}/>
-                <Text style={styles.TextoIcono}>Perfil</Text>
-            </View>
-            </View>
+         
         <Modal 
         animationType='none'
         transparent={true}

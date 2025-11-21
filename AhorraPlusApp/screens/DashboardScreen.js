@@ -47,39 +47,40 @@ export default function DashboardScreen() {
         
         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={botonCerrar}>
         
-        <View style={styles.modalContenedor}>
+            <View style={styles.modalContenedor}>
           
-          <View style={styles.modalVista}>
+                <View style={styles.modalVista}>
             
-            <Text style={styles.modalTitulo}>Agregar Transacción</Text>
+                    <Text style={styles.modalTitulo}>Agregar Transacción</Text>
 
-            <TextInput style={styles.modalInput} placeholder="Descripción" placeholderTextColor="#888" value={descripcion} onChangeText={setDescripcion}/>
-            <TextInput style={styles.modalInput} placeholder="Monto" placeholderTextColor="#888" keyboardType="numeric" value={monto} onChangeText={setMonto}/>
+                    <TextInput style={styles.modalInput} placeholder="Descripción" placeholderTextColor="#888" value={descripcion} onChangeText={setDescripcion}/>
+                    <TextInput style={styles.modalInput} placeholder="Monto" placeholderTextColor="#888" keyboardType="numeric" value={monto} onChangeText={setMonto}/>
 
-            <View style={styles.switchContenedor}>
+                    <View style={styles.switchContenedor}>
               
-              <Text style={[ styles.switchTexto, !gasto && styles.switchTextoActivoVerde]}>Ingreso</Text>
+                        <Text style={[ styles.switchTexto, !gasto && styles.switchTextoActivoVerde]}>Ingreso</Text>
               
-              <Switch trackColor={{ false: '#DCFCE7', true: '#FEE2E2' }} thumbColor={gasto ? '#EF4444' : '#22C55E'} onValueChange={() => setGasto(!gasto)} value={gasto}/>
+                        <Switch trackColor={{ false: '#DCFCE7', true: '#FEE2E2' }} thumbColor={gasto ? '#EF4444' : '#22C55E'} onValueChange={() => setGasto(!gasto)} value={gasto}/>
               
-              <Text style={[styles.switchTexto, gasto && styles.switchTextoActivoRojo]}>Gasto</Text>
+                        <Text style={[styles.switchTexto, gasto && styles.switchTextoActivoRojo]}>Gasto</Text>
+                
+                    </View>
+
+                    <View style={styles.modalBotones}>
+              
+                        <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrar}>
+                            <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+                        </TouchableOpacity>
+              
+                        <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardar}>
+                            <Text style={styles.botonGuardarTexto}>Guardar</Text>
+                        </TouchableOpacity>
+
+                    </View>
+
+                </View>
+
             </View>
-
-            <View style={styles.modalBotones}>
-              
-              <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrar}>
-                <Text style={styles.botonCancelarTexto}>Cancelar</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardar}>
-                <Text style={styles.botonGuardarTexto}>Guardar</Text>
-              </TouchableOpacity>
-
-            </View>
-
-          </View>
-
-        </View>
 
         </Modal>
 
@@ -150,7 +151,7 @@ export default function DashboardScreen() {
 
                 <TouchableOpacity style={styles.accionBoton}>
                     <Image source={transIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Transferir</Text>
+                    <Text style={styles.accionTexto}>Transacción</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.accionBoton}>
@@ -215,30 +216,6 @@ export default function DashboardScreen() {
             </View>
 
         </ScrollView>
-
-            <View style={styles.contenedor3}>
-
-                <View style={styles.TextoYIcono}>
-                     <Image source={inicio} style={styles.navegacion}/>
-                     <Text style={styles.TextoIcono}>Inicio</Text>
-                </View>
-
-                <View style={styles.TextoYIcono}>
-                     <Image source={transIcono} style={styles.navegacion}/>
-                     <Text style={styles.TextoIcono} >Transaciones</Text>
-                </View>
-
-                <View style={styles.TextoYIcono}>
-                     <Image source={grafica} style={styles.navegacion}/>
-                     <Text style={styles.TextoIcono}>Grafica</Text>
-                </View>
-
-                <View style={styles.TextoYIcono}>
-                     <Image source={perfil} style={styles.navegacion}/>
-                     <Text style={styles.TextoIcono}>Perfil</Text>
-                </View>
-            </View>
-
 
         </View>
     )

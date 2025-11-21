@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
 
-export default function RegistroScreen() {
+export default function RegistroScreen({navigation}) {
     const [nombre, setNombre] = useState('');
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña] = useState('');
@@ -98,7 +98,7 @@ export default function RegistroScreen() {
 
             <View style={styles.registerContainer}>
               <Text>¿Ya tienes cuenta? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.Text}>Inicia sesión</Text>
               </TouchableOpacity>
             </View>

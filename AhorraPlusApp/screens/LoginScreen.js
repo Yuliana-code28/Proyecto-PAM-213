@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
-export default function LoginScreen() {
+export default function LoginScreen({navigation}) {
     const [correo, setCorreo] = useState('');
     const[contraseña, setContraseña]= useState(''); 
     const [terminos, setTerminos] = useState(false); 
@@ -40,13 +40,16 @@ export default function LoginScreen() {
 
     if (Platform.OS === 'web') {
       alert(`Bienvenido, ${correo}`);
+      navigation.replace('MainApp');
     } else {
       Alert.alert(
         'Iniciar sesión exitoso',
         `Bienvenido, ${correo}`,
         [
           { text: 'Cancelar' },
-          { text: 'Aceptar' }
+          { text: 'Aceptar',
+            onPress: () => navigation.replace('MainApp')
+           }
         ]
       );
     }
@@ -85,7 +88,7 @@ export default function LoginScreen() {
         
         <View style={styles.optionsContainer}>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Restablecer')}>
           <Text style={styles.Text}>Olvidé mi contraseña</Text>
         </TouchableOpacity>
       </View>
@@ -95,7 +98,7 @@ export default function LoginScreen() {
       
       <View style={styles.registerContainer}>
         <Text> ¿No tienes una cuenta? </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
           <Text style={styles.Text}>Registrarse</Text>
         </TouchableOpacity>
       </View>
