@@ -22,6 +22,21 @@ export default function LoginScreen({navigation}) {
       return;
     }
 
+    if (!correo.includes('@')) {
+    if (Platform.OS === 'web') {
+      alert('El correo debe contener el símbolo @');
+    } else {
+      Alert.alert(
+        'Correo inválido',
+        'El correo debe contener arroba @ ',
+        [
+          { text: 'Aceptar' }
+        ]
+      );
+    }
+    return;
+  }
+
     if (!terminos) {
       if (Platform.OS === 'web') {
         alert('Favor de aceptar los términos y condiciones para poder continuar.');
