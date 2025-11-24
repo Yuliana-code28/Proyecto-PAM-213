@@ -11,6 +11,7 @@ import PerfilScreen from "./screens/PerfilScreen"
 import RestablecerScreen from "./screens/RestablecerScreen"
 import TransaccionesScreen from "./screens/TransaccionesScreen"
 import PantallaGraficas from "./screens/PantallaGraficas"
+import InicioScreen from "./screens/InicioScreen";
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -53,7 +54,8 @@ function MainTabs() {
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown: false}}>
+      <Stack.Navigator initialRouteName="Inicio" screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Inicio" component={InicioScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Registro" component={RegistroScreen} />
         <Stack.Screen name="Restablecer" component={RestablecerScreen} />
