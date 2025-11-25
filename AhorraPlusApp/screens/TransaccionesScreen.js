@@ -3,11 +3,7 @@ import { Text,View,StyleSheet, Image,TouchableOpacity,ScrollView,Alert,Modal,Tex
 
 const flecha = require('../assets/imagen/flec.png');
 const filtro = require('../assets/imagen/filtrar.png');
-const busquedaImagen = require('../assets/imagen/buscar.png')
-const inicio = require('../assets/imagen/casa.png');
-const transaciones = require('../assets/imagen/trans.png');
-const grafica = require('../assets/imagen/grafico.png');
-const perfil = require('../assets/imagen/user.png');
+const busquedaImagen = require('../assets/imagen/buscar.png');
 const restaurante = require('../assets/imagen/restaurante.png');
 const pagoMensual = require('../assets/imagen/dolar.png')
 const Gasolina = require('../assets/imagen/gasolina.png');
@@ -36,7 +32,7 @@ export default function TransaccionesScreen() {
     <View style={styles.container}>
 
       <View style={styles.conetenedorEncabezado}>
-         <Image source={flecha} style={styles.imagenFlecha}/>
+        
          <Text style={styles.titulo}>Transacciones</Text>
          <Image source={filtro} style={styles.imagenFiltro}/>
 
