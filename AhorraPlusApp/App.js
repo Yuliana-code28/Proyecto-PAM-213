@@ -12,9 +12,23 @@ import RestablecerScreen from "./screens/RestablecerScreen"
 import TransaccionesScreen from "./screens/TransaccionesScreen"
 import PantallaGraficas from "./screens/PantallaGraficas"
 import InicioScreen from "./screens/InicioScreen";
+import PantallaGraficasIngresos from "./screens/PantallaGraficasIngresos";
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
+
+function GraficasStack() {
+   return (
+      <Stack.Navigator
+         initialRouteName="Graficas"
+         screenOptions={{ headerShown: false }}
+      >
+         <Stack.Screen name="Graficas" component={PantallaGraficas}/>
+         <Stack.Screen name="GraficasIngresos" component={PantallaGraficasIngresos}/>
+      </Stack.Navigator>
+   );
+}
+
 
 function MainTabs() {
   return (
@@ -44,7 +58,7 @@ function MainTabs() {
 
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Transacciones" component={TransaccionesScreen} />
-      <Tab.Screen name="Graficas" component={PantallaGraficas} />
+      <Tab.Screen name="Graficas" component={GraficasStack} />
       <Tab.Screen name="Perfil" component={PerfilScreen} />
 
     </Tab.Navigator>
@@ -60,6 +74,7 @@ export default function App() {
         <Stack.Screen name="Registro" component={RegistroScreen} />
         <Stack.Screen name="Restablecer" component={RestablecerScreen} />
         <Stack.Screen name="MainApp" component={MainTabs} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   )
