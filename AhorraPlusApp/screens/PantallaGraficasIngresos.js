@@ -13,13 +13,13 @@ const datos = [
   { 
     name: "Gastos",
     monto: 80,
-    dinero:"2,525",
+    dinero:"2525",
     color: "#ff0000ff",
   },
   { 
     name: "Ingresos",
     monto: 50,
-    dinero:"4,000",
+    dinero:"4000",
     color: "#00ff1eff",
   }
 ];
@@ -42,7 +42,7 @@ export default function PantallaGraficasIngresos({ navigation }) {
         <Text style={styles.contenedorTitulo}>Gráficas</Text>
         <Image style={styles.imagenMale} source={maleta} />
 
-        {/* PESTAÑAS */}
+        
         <View style={styles.pestanas}>
           <TouchableOpacity
             style={[styles.boton, activo === 'gastos' && styles.activo]}
@@ -64,7 +64,7 @@ export default function PantallaGraficasIngresos({ navigation }) {
         </View>
       </View>
 
-      {/* CONTENIDO */}
+      
       <ScrollView contentContainerStyle={styles.scrollContenido}>
         
         <View style={styles.contenedor2}>

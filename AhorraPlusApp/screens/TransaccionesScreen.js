@@ -212,216 +212,221 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#e5dcb9ff',
-  },titulo:{
-    marginTop:35,
-    fontSize:25,
-    fontWeight:"bold",
-    textAlign:"center"
-  },imagenFlecha:{
-    marginTop:35,
-    position:"absolute",
-    width:40,
-    height:40,
-    left:10
-  },conetenedorEncabezado:{
-    backgroundColor:"#ffff",
-    width:"100%",
-    height:"50%",
-    alignItems:"center",
-  },imagenFiltro:{
-    marginTop:35,
-    width:35,
-    height:35,
-    position:"absolute",
-    right:10
-  },busqueda:{
-     width:"90%",
-     height:"9%",
-     borderRadius:15,
-     marginTop:35,
-     backgroundColor:"#afaeae62"
-  },imagenBusqueda:{
-    width:25,
-    height:25,
-    position:"absolute",
-    marginLeft:15,
-    marginTop:5
-  },textoBusquedaTransacciones:{
-     fontSize:18,
-     marginLeft:60,
-     marginTop:6,
-     color:"#928888ff"
-  },ContenedorDeTiposDetransacciones:{
-    width:"100%",
-    marginTop:20,
-    marginLeft:25
-  },tipoDetransaccion:{
-    position:"absolute",
-    fontSize:19,
-    fontWeight:"bold"
-  },botones:{
-    marginTop:35,
-    width:"30%",
-    height:30,
-    backgroundColor:"#afaeae62",
-    borderRadius:15,
-    alignItems:"center",
-    justifyContent:"center",
-    borderWidth:1,
-    borderColor:"black",
-    marginLeft:5
-  },contenedor3:{
-    height: 100,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems:"flex-start",
-    flexDirection:"row",
-    paddingTop:25,
-    paddingLeft:30,
-    paddingRight:30
-  },TextoYIcono:{
-    flex:1,
-    alignItems:"center",
-    justifyContent:"center"
-  },navegacion:{
-    width:"30%",
-    height:"40%",
-    resizeMode:"contain"
-  },TextoIcono:{
-    fontSize:12,
-    marginTop:5,
-  },scrollContenido: {
-    paddingBottom: 40, 
-    flexGrow:1
-  },ContenedorBotones:{
-    flexDirection:"row",
-  },TextoCategoria:{
-    position:"absolute",
-    marginTop:70,
-    fontWeight:"bold",
-    fontSize:18,
-  },botonesCategoria:{
-    marginTop:20,
-    width:"30%",
-    height:30,
-    backgroundColor:"#afaeae62",
-    borderRadius:15,
-    alignItems:"center",
-    justifyContent:"center",
-    borderWidth:1,
-    borderColor:"black",
-    marginLeft:5
-  },activar:{
-    backgroundColor:"#ffeb32ff"
-  },contenedorDeTodasLasTransaccione:{
-    flex:1,
-    marginTop:20,
-    backgroundColor:"#ffffffff",
-    marginLeft:15,
-    marginRight:15,
-    borderRadius:15,
-  },imagenRestaurante:{
-    position:"absolute",
-    width:40,
-    height:40,
-    marginTop:20,
-    marginLeft:20
-  }, conendorTransaccion:{
-     marginBottom:20
-  },textoTransaccion:{
-    fontSize:18,
-    marginTop:20,
-    marginLeft:80,
-    fontWeight:"bold"
-  },textoTransaccionCategoria:{
-    marginLeft:80
-  },dineroComida:{
-    position:"absolute",
-    right:20,
-    marginTop:30,
-    fontSize:20,
-    color:"red",
-  },botonEditar:{
-    backgroundColor:"#72b13eff",
-    width:"30%",
-    height:30,
-    alignItems:"center",
-    justifyContent:"center",
-    marginLeft:20,
-    marginTop:20,
-    borderRadius:15,
-  },textoEditar:{
-    fontSize:18,
-    color:"#fff"
-  },botonEliminar:{
-    backgroundColor:"red",
-    width:"30%",
-    height:30,
-    alignItems:"center",
-    justifyContent:"center",
-    marginLeft:20,
-    marginTop:20,
-    borderRadius:15,
-  },contenedorBotonesEliminaryEditar:{
-    flexDirection:"row"
-  },textoEliminar:{
-    fontSize:17,
-    color:"#fff"
-  },dineroSalario:{
-    position:"absolute",
-    right:20,
-    marginTop:30,
-    fontSize:20,
-    color:"#9ad654ff",
-  },modalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0,0,0,0.5)',
-},modalContenido: {
-  backgroundColor: '#fff',
-  width: '85%',
-  borderRadius: 15,
-  padding: 20,
-  alignItems: 'center',
-},editarTransaccion:{
-  fontSize:20,
-  fontWeight:"bold"
-},input:{
-  borderWidth:1,
-  borderColor:"black",
-  marginTop:20,
-  width:"100%",
-  borderRadius:5
-},modalBotones: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  width: '100%',
-  marginTop:40
-},
- botonBase: {
-  flex: 1,
-  paddingVertical: 12,
-  borderRadius: 8,
-  alignItems: 'center',
-  marginHorizontal: 5,
- },
-botonGuardar: {
-  backgroundColor: '#d8c242ff', 
- },
+  },
+  titulo: {
+    marginTop: 35,
+    fontSize: 25,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  imagenFlecha: {
+    marginTop: 35,
+    position: "absolute",
+    width: 40,
+    height: 40,
+    left: 10,
+  },
+  conetenedorEncabezado: {
+    backgroundColor: "#ffff",
+    width: "100%",
+    height: "50%",
+    alignItems: "center",
+  },
+  imagenFiltro: {
+    marginTop: 35,
+    width: 35,
+    height: 35,
+    position: "absolute",
+    right: 10,
+  },
+  busqueda: {
+    width: "90%",
+    height: "9%",
+    borderRadius: 15,
+    marginTop: 35,
+    backgroundColor: "#afaeae62",
+  },
+  imagenBusqueda: {
+    width: 25,
+    height: 25,
+    position: "absolute",
+    marginLeft: 15,
+    marginTop: 5,
+  },
+  textoBusquedaTransacciones: {
+    fontSize: 18,
+    marginLeft: 60,
+    marginTop: 6,
+    color: "#928888ff",
+  },
+  ContenedorDeTiposDetransacciones: {
+    width: "100%",
+    marginTop: 20,
+    marginLeft: 25,
+  },
+  tipoDetransaccion: {
+    position: "absolute",
+    fontSize: 19,
+    fontWeight: "bold",
+  },
+  botones: {
+    marginTop: 35,
+    width: "30%",
+    height: 30,
+    backgroundColor: "#afaeae62",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "black",
+    marginLeft: 5,
+  },
+  botonesCategoria: {
+    marginTop: 20,
+    width: "30%",
+    height: 30,
+    backgroundColor: "#afaeae62",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "black",
+    marginLeft: 5,
+  },
+  activar: {
+    backgroundColor: "#ffeb32ff",
+  },
+  TextoCategoria: {
+    position: "absolute",
+    marginTop: 70,
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  scrollContenido: {
+    paddingBottom: 40,
+    flexGrow: 1,
+  },
+  contenedorDeTodasLasTransaccione: {
+    flex: 1,
+    marginTop: 20,
+    backgroundColor: "#ffffffff",
+    marginLeft: 15,
+    marginRight: 15,
+    borderRadius: 15,
+  },
+  conendorTransaccion: {
+    marginBottom: 20,
+  },
+  imagenRestaurante: {
+    position: "absolute",
+    width: 40,
+    height: 40,
+    marginTop: 20,
+    marginLeft: 20,
+  },
+  textoTransaccion: {
+    fontSize: 18,
+    marginTop: 20,
+    marginLeft: 80,
+    fontWeight: "bold",
+  },
+  textoTransaccionCategoria: {
+    marginLeft: 80,
+  },
+  dineroComida: {
+    position: "absolute",
+    right: 20,
+    marginTop: 30,
+    fontSize: 20,
+    color: "red",
+  },
+  dineroSalario: {
+    position: "absolute",
+    right: 20,
+    marginTop: 30,
+    fontSize: 20,
+    color: "#9ad654ff",
+  },
+  contenedorBotonesEliminaryEditar: {
+    flexDirection: "row",
+  },
+  botonEditar: {
+    backgroundColor: "#72b13eff",
+    width: "30%",
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 20,
+    marginTop: 20,
+    borderRadius: 15,
+  },
+  textoEditar: {
+    fontSize: 18,
+    color: "#fff",
+  },
+  botonEliminar: {
+    backgroundColor: "red",
+    width: "30%",
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 20,
+    marginTop: 20,
+    borderRadius: 15,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContenido: {
+    backgroundColor: "#fff",
+    width: "85%",
+    borderRadius: 15,
+    padding: 20,
+    alignItems: "center",
+  },
+  editarTransaccion: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "black",
+    marginTop: 20,
+    width: "100%",
+    borderRadius: 5,
+  },
+  modalBotones: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 40,
+  },
+  botonBase: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  botonGuardar: {
+    backgroundColor: "#d8c242ff",
+  },
   botonGuardarTexto: {
-  color: '#000000ff',
-  fontWeight: 'bold',
-  fontSize: 16,
- },botonCancelar: {
-   backgroundColor: '#f3f4f6',
-   borderWidth: 1,
-   borderColor: '#ccc',
- },
-botonCancelarTexto: {
-  color: '#333',
-  fontWeight: 'bold',
-   fontSize: 16,
-}
+    color: "#000000ff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  botonCancelar: {
+    backgroundColor: "#f3f4f6",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  botonCancelarTexto: {
+    color: "#333",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });
-
