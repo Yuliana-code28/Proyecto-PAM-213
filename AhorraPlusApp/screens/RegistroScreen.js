@@ -6,15 +6,17 @@ export default function RegistroScreen({navigation}) {
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña] = useState('');
     const [confirmar, setConfirmar] = useState('');
+    const [numero, setNumero]=useState('');
     const [terminos, setTerminos] = useState(false); 
-      const MostrarAlerta= () =>{
-    if(nombre.trim() === '' || correo.trim() === '' || contraseña.trim() === '' || confirmar.trim() === ''){ 
+ 
+    const MostrarAlerta= () =>{
+    if(nombre.trim() === '' || correo.trim() === '' || contraseña.trim() === '' || confirmar.trim() === '' ||numero.trim()===''){ 
       if(Platform.OS === 'web'){ 
-        alert('Por favor, escribe tu nombre, correo electronico y contraseña para continuar. '); 
+        alert('Por favor, escribe: nombre, correo electronico, número de telefono y contraseña, para continuar. '); 
     }else{  
       Alert.alert( 
         'Atención',
-        'Por favor, escribe tu nombre, correo electronico y contraseña antes de continuar',
+        'Por favor, escribe tu nombre, correo electronico, número de telefono y contraseña antes de continuar',
         [
           {text: 'cancelar'},
           {text: 'aceptar'}
@@ -38,15 +40,64 @@ export default function RegistroScreen({navigation}) {
         }
         return; 
   }
-  
+  if(numero.length!=10){
+    if(Platform.OS=== 'web'){
+      alert('El número de telefono debe de contener 10 digitos.')
+    }else{
+      Alert.alert(
+        'Error',
+        'El número de telefono debe de contener 10 digitos.'
+        [
+          {text: 'cancelar'},
+          {text: 'Aceptar'}
+        ]
+      );
+    }
+    return;
+  }
+
+  if (!correo.includes('@')) {
+    if (Platform.OS === 'web') {
+      alert('El correo debe contener el símbolo @');
+    } else {
+      Alert.alert(
+        'Correo inválido',
+        'El correo debe contener arroba @ ',
+        [
+          { text: 'Aceptar' }
+        ]
+      );
+    }
+    return;
+  }
+
+  if (contraseña !== confirmar) {
+      if (Platform.OS === 'web') {
+        alert('Las contraseñas no coinciden, intenta de nuevo.');
+      } else {
+        Alert.alert(
+          'Error',
+          'Las contraseñas no coinciden, intenta de nuevo.',
+          [
+            { text: 'Cancelar' },
+            { text: 'Aceptar' }
+          ]
+        );
+      }
+      return;
+    }
+
   if(Platform.OS === 'web'){
       alert(`Bienvenido, ${nombre} !`);
+      navigation.navigate('Inicio');
   }else{
     Alert.alert(
-      'Hola', `Bienvenido, ${nombre}`, 
+      'Registro exitoso', `Bienvenido, ${nombre}`, 
       [
         {text: 'cancelar'},
-        {text: 'aceptar'}
+        {text: 'aceptar',
+          onPress: ()=> navigation.navigate('Inicio')
+        }
       ]
     );
   }
@@ -67,6 +118,15 @@ export default function RegistroScreen({navigation}) {
             value={nombre}
             onChangeText={setNombre} 
             />
+  
+            <TextInput //input de numero de telefono
+            style={styles.input}
+            placeholder='Número de telefono'
+            value={numero}
+            onChangeText={setNumero}
+            keyboardType='numeric'
+            />
+
             <TextInput //input de correo
               style={styles.input}
               placeholder='Correo electronico'
@@ -93,7 +153,7 @@ export default function RegistroScreen({navigation}) {
             </View>
 
             <TouchableOpacity style={styles.singUpButton} onPress={MostrarAlerta}>
-              <Text style={styles.singUpButtonText}>Iniciar sesión</Text>
+              <Text style={styles.singUpButtonText}>Registrarse</Text>
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>
