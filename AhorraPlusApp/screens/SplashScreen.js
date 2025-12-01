@@ -19,7 +19,7 @@ export default function SplashScreen({ navigation }) {
             <Text style={styles.title}>Ahorra +</Text>
             <Text style={styles.subtitle}>Tus finanzas bajo control</Text>
 
-            <ActivityIndicator size="large" color="#e5dcb9ff" style={{marginTop: 50}}/>
+            <ActivityIndicator size="large" color="#d8c242ff" style={{marginTop: 50}}/>
         </View>
     )
 }
@@ -40,7 +40,7 @@ const styles = StyleSheet.create ({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#e5dcb9ff',
+        color: '#d8c242ff',
         marginBottom: 10,
     },
     subtitle: {

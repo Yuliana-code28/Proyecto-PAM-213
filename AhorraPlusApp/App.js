@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Image, View, ActivityIndicator } from "react-native";
+import { StyleSheet, Image, View, ActivityIndicator, Text, StatusBar } from "react-native";
 
 import UserController from "./controllers/UserController";
 
@@ -15,17 +15,13 @@ import TransaccionesScreen from "./screens/TransaccionesScreen";
 import PantallaGraficas from "./screens/PantallaGraficas";
 import InicioScreen from "./screens/InicioScreen";
 import PantallaGraficasIngresos from "./screens/PantallaGraficasIngresos";
-import SplashScreen from "./screens/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function GraficasStack() {
    return (
-      <Stack.Navigator
-         initialRouteName="Graficas"
-         screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator initialRouteName="Graficas" screenOptions={{ headerShown: false }}>
          <Stack.Screen name="Graficas" component={PantallaGraficas}/>
          <Stack.Screen name="GraficasIngresos" component={PantallaGraficasIngresos}/>
       </Stack.Navigator>
@@ -40,7 +36,7 @@ function MainTabs() {
       tabBarInactiveTintColor: 'gray',
       tabBarIcon: ({ focused, color, size }) => {
         let iconsource;
-
+        
         if (route.name === 'Dashboard') {
           iconsource = require('./assets/imagen/casa.png');
         } else if (route.name === 'Transacciones') {
@@ -65,40 +61,74 @@ function MainTabs() {
 }
 
 export default function App() {
-  const [isDBReady, setIsDBReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [initialRoute, setInitialRoute] = useState("Inicio"); 
+  const [initialUser, setInitialUser] = useState(null);
 
   useEffect(() => {
-    const iniciarApp = async () => {
+    const prepararApp = async () => {
       try {
-        console.log("Iniciando Base de Datos...");
-        await UserController.initialize();
-        console.log("Base de Datos Lista");
-        setIsDBReady(true);
+
+        await Promise.all([
+            
+            new Promise(resolve => setTimeout(resolve, 3000)),
+            
+            
+            (async () => {
+                console.log("Iniciando Base de Datos...");
+                await UserController.initialize();
+                
+                const sessionUser = await UserController.getActiveSession();
+                if (sessionUser) {
+                    console.log("Sesión recuperada:", sessionUser.nombre);
+                    setInitialUser(sessionUser);
+                    setInitialRoute("MainApp");
+                } else {
+                    console.log("No hay sesión, ir a Inicio");
+                    setInitialRoute("Inicio");
+                }
+            })()
+        ]);
+
       } catch (error) {
-        console.error("Error inicializando BD:", error);
+        console.error("Error inicializando:", error);
+      } finally {
+        setIsReady(true);
       }
     };
 
-    iniciarApp();
+    prepararApp();
   }, []);
 
-  if (!isDBReady) {
+  if (!isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#202020' }}>
-        <ActivityIndicator size="large" color="#d8c242ff" />
+      <View style={styles.splashContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#202020ff"/>
+          
+          <Image source={require('./assets/imagen/AhorraPlusApp.png')} style={styles.splashLogo}/>
+          
+          <Text style={styles.splashTitle}>Ahorra +</Text>
+          <Text style={styles.splashSubtitle}>Tus finanzas bajo control</Text>
+          
+          <ActivityIndicator size="large" color="#e5dcb9ff" style={{marginTop: 50}}/>
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+
         <Stack.Screen name="Inicio" component={InicioScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Registro" component={RegistroScreen} />
         <Stack.Screen name="Restablecer" component={RestablecerScreen} />
-        <Stack.Screen name="MainApp" component={MainTabs} />
+        
+        <Stack.Screen 
+            name="MainApp" 
+            component={MainTabs} 
+            initialParams={initialUser ? { user: initialUser } : undefined} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -108,5 +138,28 @@ const styles = StyleSheet.create({
   tabBarIcon: {
     resizeMode: 'contain',
     marginBottom: 4,
+  },
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#202020ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  splashLogo: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  splashTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#d8c242ff',
+    marginBottom: 10,
+  },
+  splashSubtitle: {
+    fontSize: 20,
+    color: '#d4d4d4ff',
+    fontStyle: 'italic',
   }
 });

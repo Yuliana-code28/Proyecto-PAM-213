@@ -78,7 +78,14 @@ export default function PerfilScreen({ route, navigation }) {
   const handleCerrarSesion = () => {
     Alert.alert("Cerrar Sesión", "¿Estás seguro de que quieres salir?", [
       { text: "Cancelar" },
-      { text: "Salir", onPress: () => navigation.replace('Login') }
+      { text: "Salir",
+        onPress: async () => {
+          await UserController.logout();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Inicio' }]
+          })
+        } }
     ]);
   };
 

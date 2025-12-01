@@ -2,9 +2,11 @@ import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
 import UserController from '../controllers/UserController';
 export default function LoginScreen({navigation}) {
+
     const [correo, setCorreo] = useState('');
     const[contraseña, setContraseña]= useState(''); 
-    const [terminos, setTerminos] = useState(false); 
+    const [terminos, setTerminos] = useState(false);
+    const [recordarSesion, setRecordarSesion] = useState(false); 
 
   const handleLogin = async () => {
     if (!correo || !contraseña) {
@@ -16,7 +18,7 @@ export default function LoginScreen({navigation}) {
       return;
     }
     
-    const resultado = await UserController.login(correo, contraseña);
+    const resultado = await UserController.login(correo, contraseña, recordarSesion);
 
     if (resultado.success) {
       navigation.replace('MainApp', {
@@ -33,48 +35,56 @@ export default function LoginScreen({navigation}) {
       
         <StatusBar barStyle="dark-content" backgroundColor="#ffffffff"></StatusBar>
         <View >
-                <Text style={styles.maintitle}>Ahorra +</Text>
-                <Text style={styles.subtitle}>Controla tus finanzas personales</Text>
+          <Text style={styles.maintitle}>Ahorra +</Text>
+          <Text style={styles.subtitle}>Controla tus finanzas personales</Text>
         </View>
         
         <View style={styles.recuadro}>
           <Text style={styles.title}>Iniciar Sesión</Text>
           <TextInput //input de correo
-          style={styles.input}
-          placeholder='Correo electronico'
-          keyboardType='email-address'
-          value={correo}
-          onChangeText={setCorreo}
+            style={styles.input}
+            placeholder='Correo electronico'
+            keyboardType='email-address'
+            value={correo}
+            onChangeText={setCorreo}
           ></TextInput>
 
-        <TextInput //input de la contraseña
-          style={styles.input}
-          placeholder="Contraseña" 
-          secureTextEntry={true} 
-          value={contraseña}
-          onChangeText={setContraseña} >
-        </TextInput>
-        <View style={styles.switchStyle}>
+          <TextInput //input de la contraseña
+            style={styles.input}
+            placeholder="Contraseña" 
+            secureTextEntry={true} 
+            value={contraseña}
+            onChangeText={setContraseña} >
+          </TextInput>
+
+          <View style={styles.switchStyle}>
             <Text style={styles.switchText}>Aceptar términos y condiciones </Text>
-            <Switch value={terminos} onValueChange={() => setTerminos(!terminos)} />
+            <Switch value={terminos} onValueChange={() => setTerminos(!terminos)} trackColor={{ false: "#767577", true: "#d8c242ff" }} />
+          </View>
+
+          <View style={styles.switchStyle}>
+            <Text style={styles.switchText}>Recordar sesión </Text>
+            <Switch value={recordarSesion} onValueChange={setRecordarSesion} trackColor={{ false: "#767577", true: "#d8c242ff" }}/>
           </View>
         
         <View style={styles.optionsContainer}>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Restablecer')}>
-          <Text style={styles.Text}>Olvidé mi contraseña</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Restablecer')}>
+            <Text style={styles.Text}>Olvidé mi contraseña</Text>
+          </TouchableOpacity>
+
+        </View>
+        
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
         </TouchableOpacity>
-      </View>
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-      </TouchableOpacity>
       
-      <View style={styles.registerContainer}>
-        <Text> ¿No tienes una cuenta? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
-          <Text style={styles.Text}>Registrarse</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.registerContainer}>
+          <Text> ¿No tienes una cuenta? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+            <Text style={styles.Text}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
 </ScrollView>
@@ -163,7 +173,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#ffffff20',
+    backgroundColor: '#f9f9f9',
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 10,

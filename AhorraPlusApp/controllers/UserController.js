@@ -1,5 +1,6 @@
 import DatabaseService from "../database/DatabaseService"
 import { User } from "../models/User"
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export class UserController {
     async initialize() {
@@ -17,17 +18,42 @@ export class UserController {
         }
     }
 
-    async login(correo, password) {
+    async login(correo, password, recordar = false) {
         try {
             const userRaw = await DatabaseService.loginUser(correo, password);
             if (userRaw) {
+                
                 const user = new User(userRaw.id, userRaw.nombre, userRaw.correo, userRaw.telefono, userRaw.fecha_creacion, userRaw.foto);
+
+                if (recordar) {
+                    await AsyncStorage.setItem('user_session', JSON.stringify(user))
+                } else {
+                    await AsyncStorage.removeItem('user_session');
+                }
                 return { success: true, user};
             }
             return { success: false, error: "Credenciales incorrectas"};
         } catch (error) {
             console.error(error);
             return { success: false, error: error.message };
+        }
+    }
+
+    async logout() {
+        try {
+            await AsyncStorage.removeItem('user_session');
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async getActiveSession() {
+        try {
+            const jsonValue = await AsyncStorage.getItem('user_session');
+            return jsonValue != null ? JSON.parse(jsonValue) : null; 
+        } catch (e) {
+            return null;
         }
     }
 
