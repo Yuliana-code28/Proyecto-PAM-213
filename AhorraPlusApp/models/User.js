@@ -5,6 +5,7 @@ export class User {
         this.correo = correo;
         this.telefono = telefono;
         this.fechaCreacion = fechaCreacion || new Date().toISOString();
+        this.foto = this.foto;
     }
 
     static validar(nombre, correo, password) {

@@ -169,7 +169,7 @@ export default function DashboardScreen() {
 
                 <TouchableOpacity style={styles.accionBoton} onPress={() => setPresupuestoModalVisible(true)}>
                     <Image source={metaIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Metas</Text>
+                    <Text style={styles.accionTexto}>Presupuestos</Text>
                 </TouchableOpacity>
             </View>
 

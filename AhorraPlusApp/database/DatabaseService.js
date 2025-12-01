@@ -50,10 +50,10 @@ class DatabaseService {
     async registerUser(nombre, correo, telefono, password) {
         try {
             const result = await this.db.runAsync(
-                'INSERT INTO users (nombre, correo, telefono, password) VALUES (?, ?, ?, ?)',
-                nombre, correo, telefono, password
+                'INSERT INTO users (nombre, correo, telefono, password, foto) VALUES (?, ?, ?, ?, ?)',
+                nombre, correo, telefono, password, null
             );
-            return {id: result.lastInsertRowId, nombre, correo, fecha_creacion: new Date().toISOString() };
+            return {id: result.lastInsertRowId, nombre, correo, foto: null, fecha_creacion: new Date().toISOString() };
         } catch (error) {
             throw new Error("Error al registrar usuario: " + error.message);
         }
@@ -72,6 +72,25 @@ class DatabaseService {
             newPassword, correo
         );
         return result.changes > 0;
+    }
+
+    async getUserById(id) {
+        return await this.db.getFirstAsync(
+            'SELECT * FROM users WHERE id = ?',
+            id
+        );
+    }
+
+    async updateUser(id, nombre, password, foto) {
+        try {
+            const result = await this.db.runAsync(
+                'UPDATE users SET nombre = ?, password = ?, foto = ? WHERE id = ? ',
+                nombre, password, foto, id
+            );
+            return result.changes > 0;
+        } catch (error){
+            throw new Error("Error al actualizar usuario: " + error.message);
+        }
     }
 
     // Seccion de Transacciones

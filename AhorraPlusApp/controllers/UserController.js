@@ -21,7 +21,7 @@ export class UserController {
         try {
             const userRaw = await DatabaseService.loginUser(correo, password);
             if (userRaw) {
-                const user = new User(userRaw.id, userRaw.nombre, userRaw.correo, userRaw.telefono, userRaw.fecha_creacion);
+                const user = new User(userRaw.id, userRaw.nombre, userRaw.correo, userRaw.telefono, userRaw.fecha_creacion, userRaw.foto);
                 return { success: true, user};
             }
             return { success: false, error: "Credenciales incorrectas"};
@@ -41,6 +41,34 @@ export class UserController {
             return {success: false, error: error.message};
         }
     }
+
+    async getUser(id) {
+        try {
+            const userRaw = await DatabaseService.getUserById(id);
+            if (userRaw) {
+                return new User(userRaw.id, userRaw.nombre, userRaw.correo,userRaw.telefono, userRaw.fecha_creacion);
+            }
+            return null;
+        } catch (error) {
+            console.error("Error al obtener usuario:", error);
+            return null;
+        }
+    }
+
+    async updateUser(id, nombre, password, foto) {
+        try {
+            if (!nombre.trim() || !password.trim()) throw new Error("Nombre y contraseña requeridos");
+            
+            const success = await DatabaseService.updateUser(id, nombre, password, foto);
+            if (success) {
+                return { success: true };
+            }
+            return { success: false, error: "No se pudo actualizar" };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
 }
 
 export default new UserController();
