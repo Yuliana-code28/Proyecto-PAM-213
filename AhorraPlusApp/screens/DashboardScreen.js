@@ -1,11 +1,12 @@
 import React, {useState}  from 'react';
 import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Modal,TextInput,Alert,Image} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const campanaIcono = require('../assets/imagen/campana.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
-const transIcono = require('../assets/imagen/trans.png');
+const transIcono = require('../assets/imagen/cartera.webp');
 const pagarIcono = require('../assets/imagen/pagar.png');
-const presupuestoIcono = require('../assets/imagen/presupuesto.png');
+const metaIcono = require('../assets/imagen/meta.jpg');
 const inicio = require('../assets/imagen/casa.png');
 const grafica = require('../assets/imagen/grafico.png');
 const perfil = require('../assets/imagen/user.png');
@@ -127,31 +128,38 @@ export default function DashboardScreen() {
             </View>
 
             <View style={styles.balanceContainer}>
-                <Text style={styles.balanceTitulo}>Balance Total</Text>
-                <Text style={styles.balanceCantidad}>$15,847.32</Text>
-
-                <View style={styles.flowRow}>
-                    <View>
-                        <Text style={styles.flowTitle}>Ingresos</Text>
-                        <Text style={styles.ingresoVerde}>+$3,300.00</Text>
-                    </View>
-
-                    <View>
-                        <Text style={styles.flowTitle}>Gastos</Text>
-                        <Text style={styles.gastoRojo}>-$1,452.68</Text>
-                    </View>
-                </View>
+            <View style={styles.balanceLeft}>
+            <Text style={styles.balanceTitulo}>Saldo</Text>
+            <Text style={styles.balanceCantidad}>$45,280.32</Text>
+            
+            <View style={styles.iconRow}>
+            <View style={styles.iconCircle}>
+                <Ionicons name="card-outline" size={28} color="#000000" />
+            </View>
+            <Text style={styles.cardSub}>Tarjeta: Gold Premium</Text>
             </View>
 
+            
+
+            <View style={styles.flowRow}>
+                <View>
+                <Text style={styles.flowTitle}>Ingresos</Text>
+                <Text style={styles.ingresoVerde}>+$3,300.00</Text>
+                </View>
+            <View>
+                <Text style={styles.flowTitle}>Gastos</Text>
+                <Text style={styles.gastoRojo}>-$1,452.68</Text>
+            </View>
+            </View>
+            </View>
+            </View>
+
+
             <View style={styles.crudRow}>
-                <TouchableOpacity style={styles.accionBoton} onPress={() => setModalVisible(true)}>
-                    <Image source={agregarIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Agregar</Text>
-                </TouchableOpacity>
 
                 <TouchableOpacity style={styles.accionBoton}>
                     <Image source={transIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Transacción</Text>
+                    <Text style={styles.accionTexto}>Creditos</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.accionBoton}>
@@ -160,8 +168,8 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.accionBoton} onPress={() => setPresupuestoModalVisible(true)}>
-                    <Image source={presupuestoIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Presupuesto</Text>
+                    <Image source={metaIcono} style={styles.campanaIcono}/>
+                    <Text style={styles.accionTexto}>Metas</Text>
                 </TouchableOpacity>
             </View>
 
@@ -254,12 +262,26 @@ const styles = StyleSheet.create({
         height: 26,
         resizeMode: 'contain',
     },
-    balanceContainer:{
-        backgroundColor: '#1A1A1A',
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 24,
-        elevation: 8,
+    balanceContainer: {
+    backgroundColor: '#000000ff',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    width:'100%',
+    alignSelf:'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    },
+    balanceLeft: {
+    flex: 1,
+    paddingRight: 12,
     },
     balanceTitulo:{
         color:'#aaaaaaff',
@@ -267,10 +289,35 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     balanceCantidad:{
-        color: '#d8c242ff',
         fontSize: 36,
         fontWeight: 'bold',
-        marginBottom: 20,
+        color: '#d8c242ff',
+        marginBottom: 12,
+    },
+    cardSub: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 4,
+    },
+    iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+    },
+    iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#d8c242ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8, // separación entre ícono y texto
+    },
+    iconInsideCircle: {
+    width: 32,
+    height: 32,
+    resizeMode: 'contain',
     },
     flowRow: {
         flexDirection: 'row',
@@ -304,7 +351,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingVertical: 16,
         alignItems: 'center',
-        width: '22%',
+        width: '32%',
         elevation: 4,
     },
     accionTexto: {
