@@ -1,88 +1,77 @@
-import React, {useState} from 'react'
-import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
+import React, { useState } from 'react';
+import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Alert } from 'react-native';
+import UserController from '../controllers/UserController';
 
-export default function RestablecerScreen({navigation}) {
-const [contraseña, setContraseña] = useState('');
-const [confirmar, setConfirmar] = useState('');
-const MostrarAlerta = () => {
-  if (contraseña.trim() === '' || confirmar.trim() === '') {
-    if (Platform.OS === 'web') {
-      alert('Por favor, escribe y confirma tu nueva contraseña para continuar. ');
-    } else {
-      Alert.alert(
-        'Atención',
-        'Por favor, escribe y confirma tu nueva contraseña antes de continuar',
-        [
-          { text: 'cancelar' },
-          { text: 'aceptar' }
-        ]
-      );
+export default function RestablecerScreen({ navigation }) {
+  const [correo, setCorreo] = useState('');
+  const [contraseña, setContraseña] = useState('');
+  const [confirmar, setConfirmar] = useState('');
+
+  const handleRestablecer = async () => {
+    if (!correo.trim() || !contraseña.trim() || !confirmar.trim()) {
+      Alert.alert('Atención', 'Todos los campos son obligatorios');
+      return;
     }
-    return;
-  }
 
-  if (contraseña !== confirmar) {
-    if (Platform.OS === 'web') {
-      alert('Las contraseñas no coinciden, intenta de nuevo.');
-    } else {
-      Alert.alert(
-        'Error',
-        'Las contraseñas no coinciden, intenta de nuevo.',
-        [
-          { text: 'Cancelar' },
-          { text: 'Aceptar' }
-        ]
-      );
+    if (contraseña !== confirmar) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
     }
-    return;
-  }
 
-  if (Platform.OS === 'web') {
-    alert('Contraseña cambiada exitosamente !');
-    navigation.navigate('Login');
-  } else {
-    Alert.alert(
-      'Acción completada',
-      'Contraseña cambiada exitosamente',
-      [
-        { text: 'cancelar' },
-        { text: 'aceptar', onPress: () => navigation.navigate('Login') }
-      ]
-    );
-  }
-}
+    const resultado = await UserController.recoverPassword(correo, contraseña);
 
-    return (
-      <ScrollView contentContainerStyle={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffffff"></StatusBar>
-          <View>
-            <Text style={styles.maintitle}>Ahorra +</Text>
-            <Text style={styles.subtitle}>Controla tus finanzas personales</Text>
-          </View>
-         <View style={styles.recuadro}>
-           <Text style={styles.title}>Restablecer contraseña</Text>
+    if (resultado.success) {
+      Alert.alert('Éxito', 'Contraseña actualizada correctamente', [
+        { text: 'Iniciar Sesión', onPress: () => navigation.navigate('Login') }
+      ]);
+    } else {
+      Alert.alert('Error', resultado.error);
+    }
+  };
 
-            <TextInput
-             style={styles.input}
-             placeholder="Nueva contraseña" 
-             secureTextEntry={true} 
-             value={contraseña}
-             onChangeText={setContraseña} />
-            <TextInput
-              style={styles.input}
-              placeholder="Confirma tu nueva contraseña"
-              secureTextEntry={true}
-              value={confirmar}
-              onChangeText={setConfirmar}
-            />
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#e5dcb9ff" />
+      <View>
+        <Text style={styles.maintitle}>Ahorra +</Text>
+        <Text style={styles.subtitle}>Recupera tu acceso</Text>
+      </View>
+      <View style={styles.recuadro}>
+        <Text style={styles.title}>Restablecer contraseña</Text>
 
-            <TouchableOpacity style={styles.restablecerButton} onPress={MostrarAlerta}>
-              <Text style={styles.resButtonText}>Enviar</Text>
-            </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electrónico"
+          keyboardType="email-address"
+          value={correo}
+          onChangeText={setCorreo}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Nueva contraseña"
+          secureTextEntry={true}
+          value={contraseña}
+          onChangeText={setContraseña}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirma tu nueva contraseña"
+          secureTextEntry={true}
+          value={confirmar}
+          onChangeText={setConfirmar}
+        />
 
-         </View>
-      </ScrollView>
-    )
+        <TouchableOpacity style={styles.restablecerButton} onPress={handleRestablecer}>
+          <Text style={styles.resButtonText}>Cambiar Contraseña</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{marginTop: 15, alignItems:'center'}}>
+            <Text>Cancelar</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
