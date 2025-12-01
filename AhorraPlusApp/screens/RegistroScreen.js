@@ -1,5 +1,6 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
+import UserController from '../controllers/UserController'
 
 export default function RegistroScreen({navigation}) {
     const [nombre, setNombre] = useState('');
@@ -7,101 +8,36 @@ export default function RegistroScreen({navigation}) {
     const [contraseña, setContraseña] = useState('');
     const [confirmar, setConfirmar] = useState('');
     const [numero, setNumero]=useState('');
-    const [terminos, setTerminos] = useState(false); 
+    const [terminos, setTerminos] = useState(false);
+    
+    React.useEffect(() => {
+      UserController.initialize();
+    }, []);
  
-    const MostrarAlerta= () =>{
-    if(nombre.trim() === '' || correo.trim() === '' || contraseña.trim() === '' || confirmar.trim() === '' ||numero.trim()===''){ 
-      if(Platform.OS === 'web'){ 
-        alert('Por favor, escribe: nombre, correo electronico, número de telefono y contraseña, para continuar. '); 
-    }else{  
-      Alert.alert( 
-        'Atención',
-        'Por favor, escribe tu nombre, correo electronico, número de telefono y contraseña antes de continuar',
-        [
-          {text: 'cancelar'},
-          {text: 'aceptar'}
-        ]
-      );
-    }
-    return;
-  }
-   if (!terminos) {
-        if (Platform.OS === 'web') {
-          alert('Favor de aceptar los términos y condiciones para poder continuar.');
-        } else {
-          Alert.alert(
-            'Terminos no aceptados',
-            'Favor de aceptar los términos y condiciones para poder continuar.',
-            [
-              { text: 'Cancelar' },
-              { text: 'Aceptar' }
-            ]
-          );
-        }
-        return; 
-  }
-  if(numero.length!=10){
-    if(Platform.OS=== 'web'){
-      alert('El número de telefono debe de contener 10 digitos.')
-    }else{
-      Alert.alert(
-        'Error',
-        'El número de telefono debe de contener 10 digitos.'
-        [
-          {text: 'cancelar'},
-          {text: 'Aceptar'}
-        ]
-      );
-    }
-    return;
-  }
-
-  if (!correo.includes('@')) {
-    if (Platform.OS === 'web') {
-      alert('El correo debe contener el símbolo @');
-    } else {
-      Alert.alert(
-        'Correo inválido',
-        'El correo debe contener arroba @ ',
-        [
-          { text: 'Aceptar' }
-        ]
-      );
-    }
-    return;
-  }
-
-  if (contraseña !== confirmar) {
-      if (Platform.OS === 'web') {
-        alert('Las contraseñas no coinciden, intenta de nuevo.');
-      } else {
-        Alert.alert(
-          'Error',
-          'Las contraseñas no coinciden, intenta de nuevo.',
-          [
-            { text: 'Cancelar' },
-            { text: 'Aceptar' }
-          ]
-        );
+    const handleRegistro = async () => {
+      if (!nombre.trim() || !correo.trim() || !contraseña.trim() || !numero.trim()) {
+        Alert.alert('Atención','Todos los campos son obligatorios');
+        return;
       }
-      return;
-    }
+      if (!terminos) {
+        Alert.alert('Atención','Debes aceptar los términos');
+        return;
+      }
+      if (contraseña !== confirmar) {
+        Alert.alert('Error','Las contraseñas no coinciden');
+        return;
+      }
 
-  if(Platform.OS === 'web'){
-      alert(`Bienvenido, ${nombre} !`);
-      navigation.navigate('Inicio');
-  }else{
-    Alert.alert(
-      'Registro exitoso', `Bienvenido, ${nombre}`, 
-      [
-        {text: 'cancelar'},
-        {text: 'aceptar',
-          onPress: ()=> navigation.navigate('Inicio')
-        }
-      ]
-    );
-  }
-}
+      const resultado = await UserController.register(nombre, correo, numero, contraseña);
+
+      if (resultado.success) {
+        Alert.alert('Exito',`Bienvenido, ${resultado.user.nombre}`, [
+          {text: 'Ir al Login', onPress: () => navigation.navigate('Login')}
+        ]);
+      } else {
+        Alert.alert('Error al registrar', resultado.error);
+      }
+    };
 
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -152,7 +88,7 @@ export default function RegistroScreen({navigation}) {
               <Switch value={terminos} onValueChange={() => setTerminos(!terminos)} />
             </View>
 
-            <TouchableOpacity style={styles.singUpButton} onPress={MostrarAlerta}>
+            <TouchableOpacity style={styles.singUpButton} onPress={handleRegistro}>
               <Text style={styles.singUpButtonText}>Registrarse</Text>
             </TouchableOpacity>
 

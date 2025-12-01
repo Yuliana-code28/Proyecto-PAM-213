@@ -1,72 +1,30 @@
 import React, {useState} from 'react'
 import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
+import UserController from '../controllers/UserController';
 export default function LoginScreen({navigation}) {
     const [correo, setCorreo] = useState('');
     const[contraseña, setContraseña]= useState(''); 
     const [terminos, setTerminos] = useState(false); 
 
-  const MostrarAlerta = () => {
-    if (correo.trim() === '' || contraseña.trim() === '') {
-      if (Platform.OS === 'web') {
-        alert('Por favor, escribe tu correo electrónico y contraseña para continuar.');
-      } else {
-        Alert.alert(
-          'Error',
-          'Por favor, escribe tu correo electrónico y contraseña para continuar.',
-          [
-            { text: 'Cancelar' },
-            { text: 'Aceptar' }
-          ]
-        );
-      }
+  const handleLogin = async () => {
+    if (!correo || !contraseña) {
+      Alert.alert('Error', 'Ingresa correo y contraseña');
       return;
     }
-
-    if (!correo.includes('@')) {
-    if (Platform.OS === 'web') {
-      alert('El correo debe contener el símbolo @');
-    } else {
-      Alert.alert(
-        'Correo inválido',
-        'El correo debe contener arroba @ ',
-        [
-          { text: 'Aceptar' }
-        ]
-      );
-    }
-    return;
-  }
-
     if (!terminos) {
-      if (Platform.OS === 'web') {
-        alert('Favor de aceptar los términos y condiciones para poder continuar.');
-      } else {
-        Alert.alert(
-          'Terminos no aceptados',
-          'Favor de aceptar los términos y condiciones para poder continuar.',
-          [
-            { text: 'Cancelar' },
-            { text: 'Aceptar' }
-          ]
-        );
-      }
-      return; 
+      Alert.alert('Atención', 'Acepta los términos para continuar');
+      return;
     }
+    
+    const resultado = await UserController.login(correo, contraseña);
 
-    if (Platform.OS === 'web') {
-      alert(`Bienvenido, ${correo}`);
-      navigation.replace('MainApp');
+    if (resultado.success) {
+      navigation.replace('MainApp', {
+        screen: 'Dashboard',
+        params: { user: resultado.user } 
+      });
     } else {
-      Alert.alert(
-        'Iniciar sesión exitoso',
-        `Bienvenido, ${correo}`,
-        [
-          { text: 'Cancelar' },
-          { text: 'Aceptar',
-            onPress: () => navigation.replace('MainApp')
-           }
-        ]
-      );
+      Alert.alert('Error de inicio de sesión', resultado.error);
     }
   };
 
@@ -107,7 +65,7 @@ export default function LoginScreen({navigation}) {
           <Text style={styles.Text}>Olvidé mi contraseña</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.loginButton} onPress={MostrarAlerta}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Iniciar sesión</Text>
       </TouchableOpacity>
       

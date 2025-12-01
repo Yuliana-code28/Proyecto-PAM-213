@@ -11,7 +11,7 @@ class DatabaseService {
         await this.db.execAsync(`
             PRAGMA foreing_keys = ON;
 
-            CREATE TABLE IF NOT EXIST users (
+            CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT NOT NULL,
                 correo TEXT NOT NULL UNIQUE,
@@ -20,7 +20,7 @@ class DatabaseService {
                 fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
-            CREATE TABLE IF NOT EXIST transacciones (
+            CREATE TABLE IF NOT EXISTS transacciones (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 monto REAL NOT NULL,
@@ -28,15 +28,15 @@ class DatabaseService {
                 descripcion TEXT,
                 tipo TEXT,
                 fecha TEXT,
-                FOREIGN KEY (user_id) REFECENCES users(id)
+                FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
-            CREATE TABLE IF NOT EXIST presupuestos (
+            CREATE TABLE IF NOT EXISTS presupuestos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 monto REAL NOT NULL,
                 mes TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFECENCES users(id)
+                FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
         `);
