@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite'
 
+
 class DatabaseService {
     constructor() {
         this.db = null;
@@ -45,7 +46,7 @@ class DatabaseService {
     
     }
 
-    // Seccion de Usuarios
+    
 
     async registerUser(nombre, correo, telefono, password) {
         try {
@@ -113,8 +114,8 @@ class DatabaseService {
 
     async getTransactions(userId) {
         return await this.db.getAllAsync(
-            'SELECT * FROM transacciones WHERE user_id = ? ORDER BY fecha DESC',
-            userId 
+            'SELECT * FROM transacciones WHERE user_id = ? ORDER BY fecha DESC', // Filtra por userId
+            userId
         );
     }
 
@@ -123,24 +124,34 @@ class DatabaseService {
         return result.changes > 0;
     }
 
-    async updateTransaction(id, monto, categoria, descripcion, fecha) {
-        const result = await this.db.runAsync(
-            'UPDATE transacciones SET monto = ?, categoria = ?, descripcion = ?, fecha = ? WHERE id =?',
-            monto, categoria, descripcion, fecha, id
-        );
-        return result.changes > 0;
+    async updateTransaction(id, monto, categoria, descripcion, tipo, fecha) {
+        try {
+            const result = await this.db.runAsync(
+                `UPDATE transacciones 
+                 SET monto = ?, categoria = ?, descripcion = ?, tipo = ?, fecha = ?
+                 WHERE id = ?`,
+                monto, categoria, descripcion, tipo, fecha, id
+            );
+    
+            console.log("Transacción actualizada:", result);
+    
+            return result.changes > 0;
+        } catch (error) {
+            console.error("Error al actualizar transacción:", error);
+            throw error;
+        }
     }
 
-    // Seccion de Presupuestos
+   
 
     async setBudget(userId, monto, mes) {
         const existing = await this.db.getFirstAsync(
-            'SELECT * FROM presupuesto WHERE user_id = ? AND mes = ?',
+            'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
             userId, mes
         );
 
         if (existing) {
-            await this.db.runAsync('UPDATE presupuesto SET monto = ? WHERE id = ?', monto, existing.id);
+            await this.db.runAsync('UPDATE presupuestos SET monto = ? WHERE id = ?', monto, existing.id);
             return { id: existing.id, user_id: userId, monto, mes};
         } else {
             const result = await this.db.runAsync(
