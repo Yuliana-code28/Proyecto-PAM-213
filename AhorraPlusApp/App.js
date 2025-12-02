@@ -103,6 +103,18 @@ const NavigationLayout = () => {
 
 
 export default function App() {
+
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        await DatabaseService.initialize();
+        console.log("BD lista");
+      } catch (error) {
+        console.log("Error inicializando BD:", error);
+      }
+    };
+    init();
+  }, []);
   return (
       <AuthProvider>
           <NavigationLayout />
