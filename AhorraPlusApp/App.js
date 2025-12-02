@@ -18,7 +18,7 @@ import PantallaGraficasIngresos from "./screens/PantallaGraficasIngresos";
 import PagarScreen from "./screens/PagarScreen";
 import CreditosScreen from "./screens/CreditosScreen";
 import PresupuestoScreen from "./screens/PresupuestoScreen";
-
+import DatabaseService from "./database/DatabaseService";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 

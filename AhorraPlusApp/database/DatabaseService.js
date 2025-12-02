@@ -9,7 +9,7 @@ class DatabaseService {
         this.db = await SQLite.openDatabaseAsync('ahorraplus.db')
 
         await this.db.execAsync(`
-            PRAGMA foreing_keys = ON;
+            PRAGMA foreign_keys = ON;
 
             DROP TABLE IF EXISTS presupuestos;
 
@@ -196,12 +196,13 @@ class DatabaseService {
     }
 
     // Obtener todos los presupuestos (para la lista)
-    async getAllBudgets(userId, mes) {
+    async getAllBudgets(userId) {
         return await this.db.getAllAsync(
             'SELECT * FROM presupuestos WHERE user_id = ? ORDER BY mes DESC',
-            userId, mes
+            userId
         );
     }
+    
 
     // Obtener un solo presupuesto (para validaciones o edición específica)
     async getBudget(userId, mes) {

@@ -25,19 +25,27 @@ export class BudgetController {
 
     async getAll(userId) {
         try {
-            const data = await DatabaseService.getAllBudgets(userId, mes);
-            return data.map(b => new Budget(b.id, b.user_id, b.monto, b.mes, b.descripcion));
+            const data = await DatabaseService.getAllBudgets(userId);
+            return data.map(b =>
+                new Budget(b.id, b.user_id, b.monto, b.mes, b.descripcion)
+            );
         } catch (error) {
             console.error("Error al obtener presupuesto: ", error);
-            return[];
+            return [];
         }
     }
 
     async getBudget(userId, mes) {
-        try { 
+        try {
             const budgetRaw = await DatabaseService.getBudget(userId, mes);
             if (budgetRaw) {
-                return new Budget(budgetRaw.id, budgetRaw.user_id, budgetRaw.monto, budgetRaw.mes, budgetRaw.descripcion);
+                return new Budget(
+                    budgetRaw.id,
+                    budgetRaw.user_id,
+                    budgetRaw.monto,
+                    budgetRaw.mes,
+                    budgetRaw.descripcion
+                );
             }
             return null;
         } catch (error) {

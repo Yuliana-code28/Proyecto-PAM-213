@@ -72,10 +72,7 @@ export default function TransaccionesScreen() {
     if (filtroTipo !== "todos" && t.tipo.trim() !== filtroTipo) return false;
   
   
-    if (
-      selectedCategory !== "todas" &&
-      t.categoria.trim() !== selectedCategory
-    ) {
+    if (selectedCategory !== "todas" &&  t.categoria.trim() !== selectedCategory ) {
       return false;
     }
   
@@ -85,7 +82,7 @@ export default function TransaccionesScreen() {
       const coincideDescripcion = (t.descripcion.trim() || "")
         .toLowerCase().trim()
         .includes(texto);
-      const coincideCategoria = (t.categoria || "")
+      const coincideCategoria = (t.categoria.trim() || "")
         .toLowerCase()
         .includes(texto);
   
