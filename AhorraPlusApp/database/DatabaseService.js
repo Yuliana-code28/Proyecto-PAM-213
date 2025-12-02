@@ -37,6 +37,7 @@ class DatabaseService {
                 user_id INTEGER NOT NULL,
                 monto REAL NOT NULL,
                 mes TEXT NOT NULL,
+                descripcion TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
@@ -166,27 +167,30 @@ class DatabaseService {
         }
     }
 
-    async setBudget(userId, monto, mes) {
+    async setBudget(userId, monto, mes, descripcion) {
         const existing = await this.db.getFirstAsync(
-            'SELECT * FROM presupuesto WHERE user_id = ? AND mes = ?',
+            'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
             userId, mes
         );
 
         if (existing) {
-            await this.db.runAsync('UPDATE presupuestos SET monto = ? WHERE id = ?', monto, existing.id);
-            return { id: existing.id, user_id: userId, monto, mes};
+            await this.db.runAsync(
+                'UPDATE presupuestos SET monto = ?, descripcion = ? WHERE id = ?',
+                monto, descripcion, existing.id
+            );
+            return { id: existing.id, user_id: userId, monto, mes, descripcion };
         } else {
             const result = await this.db.runAsync(
-                'INSERT INTO presupuestos (user_id, monto, mes) VALUES (?, ?, ?)',
-                userId, monto, mes
+                'INSERT INTO presupuestos (user_id, monto, mes, descripcion) VALUES (?, ?, ?, ?)',
+                userId, monto, mes, descripcion
             );
-            return { id: result.lastInsertRowId, user_id: userId, monto, mes};
+            return { id: result.lastInsertRowId, user_id: userId, monto, mes, descripcion};
         }
     }
 
     async getBudget(userId, mes) {
         return await this.db.getFirstAsync(
-            'SELECT *FROM presupuesto WHERE user_id = ? AND mes = ?',
+            'SELECT *FROM presupuestos WHERE user_id = ? AND mes = ?',
             userId, mes 
         );
     }

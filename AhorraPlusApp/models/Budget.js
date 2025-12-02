@@ -4,6 +4,7 @@ export class Budget {
         this.userId = userId;
         this.monto = monto;
         this.mes = mes;
+        this.descripcion = descripcion;
     }
 
     static validar(monto) {

@@ -6,12 +6,14 @@ export class BudgetController {
         this.listeners = [];
     }
 
-    async saveBudget(userId, monto, mes) {
+    async saveBudget(userId, monto, mes, descripcion) {
         try {
             Budget.validar(monto);
-            const budgetRaw = await DatabaseService.setBudget(userId, parseFloat(monto), mes);
+            const budgetRaw = await DatabaseService.setBudget(userId, parseFloat(monto), mes, descripcion);
             this.notifyListeners();
-            return { success: true, budget: new Budget(budgetRaw.id, userId, budgetRaw.monto, mes) };
+            return { 
+                success: true, 
+                budget: new Budget(budgetRaw.id, userId, budgetRaw.monto, mes, budgetRaw.descripcion) };
         } catch (error) {
             return { success: false, error: error.message };
         }
@@ -21,7 +23,7 @@ export class BudgetController {
         try {
             const budgetRaw = await DatabaseService.getBudget(userId, mes);
             if (budgetRaw) {
-                return new Budget(budgetRaw.id, budgetRaw.user_id, budgetRaw.monto, budgetRaw.mes);
+                return new Budget(budgetRaw.id, budgetRaw.user_id, budgetRaw.monto, budgetRaw.mes, budgetRaw.descripcion);
             }
             return null;
         } catch (error) {

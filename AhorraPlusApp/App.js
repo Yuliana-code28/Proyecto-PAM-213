@@ -17,6 +17,7 @@ import InicioScreen from "./screens/InicioScreen";
 import PantallaGraficasIngresos from "./screens/PantallaGraficasIngresos";
 import PagarScreen from "./screens/PagarScreen";
 import CreditosScreen from "./screens/CreditosScreen";
+import PresupuestoScreen from "./screens/PresupuestoScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -40,7 +41,6 @@ function MainTabs() {
         let iconsource;
         
         if (route.name === 'Dashboard') {
-
           iconsource = require('./assets/imagen/casa.png');
         } else if (route.name === 'Transacciones') {
           iconsource = require('./assets/imagen/trans.png');
@@ -48,14 +48,17 @@ function MainTabs() {
           iconsource = require('./assets/imagen/grafico.png');
         } else if (route.name === 'Perfil') {
           iconsource = require('./assets/imagen/user.png');
+        } else if (route.name === 'Presupuestos') {
+          iconsource = require('./assets/imagen/presupuesto.png');
         }
         return (
           <Image source={iconsource} style={[styles.tabBarIcon, { width: size, height: size, tintColor: color }]} />
         )
       }
     })}>
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />      
       <Tab.Screen name="Transacciones" component={TransaccionesScreen} />
+      <Tab.Screen name="Presupuestos" component={PresupuestoScreen} />
       <Tab.Screen name="Graficas" component={GraficasStack} />
       <Tab.Screen name="Perfil" component={PerfilScreen} />
     </Tab.Navigator>
