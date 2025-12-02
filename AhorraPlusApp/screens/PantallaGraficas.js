@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { PieChart } from "react-native-chart-kit";
-import TransactionController from '../controllers/TransactionController';
-import UserController from "../controllers/UserController";
 import { useFocusEffect } from '@react-navigation/native';
+import TransactionController from '../controllers/TransactionController'; // Importar controlador
+import UserController from "../controllers/UserController";
 
 const maleta = require('../assets/imagen/maleta.png');
 
@@ -13,7 +13,9 @@ const coloresCategorias = {
   Compras: '#FF0000',         
   Entretenimiento: '#800080',
   Servicios: '#008000',       
-  Otros: '#808080',           
+  Otros: '#808080',
+  Casa: '#A52A2A',
+  Salud: '#00CED1'
 };
 
 const getRandomColor = () => {
@@ -39,40 +41,48 @@ export default function PantallaGraficas({ navigation }) {
   }, []);
 
   useFocusEffect(
-    React.useCallback(() => {
-      if (!userId) return;
-  
+    useCallback(() => {
       const fetchTransactions = async () => {
+        if (!userId) return;
         const data = await TransactionController.getAll(userId);
         setTransactions(data);
       };
-  
       fetchTransactions();
     }, [userId])
   );
 
-  
   const gastosPorCategoria = transactions
-    .filter(t => t.tipo.trim() === 'gasto')
+    .filter(t => t.tipo.toLowerCase().trim() === 'gasto')
     .reduce((acc, t) => {
-      const categoriaExistente = acc.find(item => item.name.trim() === t.categoria.trim());
+      const catNombre = t.categoria.trim();
+      const categoriaExistente = acc.find(item => item.name === catNombre);
+      
       if (categoriaExistente) {
-        categoriaExistente.monto += t.monto;
+        categoriaExistente.monto += parseFloat(t.monto);
       } else {
-        const color = coloresCategorias[t.categoria.trim()] || getRandomColor();
-        acc.push({ name: t.categoria, monto: t.monto, color });
+        const color = coloresCategorias[catNombre] || getRandomColor();
+        acc.push({ 
+            name: catNombre, 
+            monto: parseFloat(t.monto), 
+            color: color, 
+            legendFontColor: "#7F7F7F", 
+            legendFontSize: 15 
+        });
       }
       return acc;
     }, []);
-
 
   const total = gastosPorCategoria.reduce((suma, item) => suma + item.monto, 0);
 
   const porcentaje = gastosPorCategoria.map(item => ({
     ...item,
     dinero: item.monto,
-    porcentaje: ((item.monto / total) * 100).toFixed(2)
+    porcentaje: total > 0 ? ((item.monto / total) * 100).toFixed(1) : 0
   }));
+
+  const formatMoney = (amount) => {
+    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  };
 
   return (
     <View style={styles.container}>
@@ -104,19 +114,26 @@ export default function PantallaGraficas({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContenido}>
         <View style={styles.contenedor2}>
           <Text style={styles.tituloGrafica}>Gastos por Categoría</Text>
-          <Text style={styles.dinero}>${total}</Text>
-          <Text>Total de gastos este mes</Text>
+          <Text style={styles.dinero}>{formatMoney(total)}</Text>
+          <Text>Total de gastos</Text>
 
-          <PieChart
-            data={gastosPorCategoria}
-            width={300}
-            height={300}
-            paddingLeft={80}
-            accessor={'monto'}
-            backgroundColor={'transparent'}
-            chartConfig={{ color: () => "#ffff" }}
-            hasLegend={false}
-          />
+          {gastosPorCategoria.length > 0 ? (
+            <PieChart
+                data={gastosPorCategoria}
+                width={350}
+                height={220}
+                chartConfig={{
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                }}
+                accessor={"monto"}
+                backgroundColor={"transparent"}
+                paddingLeft={"15"}
+                center={[10, 0]}
+                hasLegend={false}
+            />
+          ) : (
+            <Text style={{marginTop: 20, color: '#777'}}>No hay gastos registrados</Text>
+          )}
         </View>
 
         <View style={styles.contenedorDesglose}>
@@ -128,9 +145,10 @@ export default function PantallaGraficas({ navigation }) {
                  <View style={{ flex: 1 }}>
                    <Text style={styles.textoPorcetaje}>{item.name}</Text>
                  </View>
-                 <Text style={[styles.Textoporcentajes, styles.textoDinero]}>${item.dinero}</Text>
+                 <Text style={[styles.Textoporcentajes, styles.textoDinero]}>{formatMoney(item.dinero)}</Text>
                  <Text style={styles.Textoporcentajes}>{item.porcentaje}%</Text>
-               </View>))}
+               </View>
+              ))}
        </View>
 
       </ScrollView>
