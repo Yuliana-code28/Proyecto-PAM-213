@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BudgetController from '../controllers/BudgetController';
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const filtro = require('../assets/imagen/filtrar.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
@@ -61,7 +60,7 @@ export default function PresupuestoScreen() {
             .filter(t => 
                 t.tipo === 'gasto' && 
                 t.fecha.startsWith(b.mes) && 
-                t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === ''
+                (t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === '')
             )
             .reduce((sum, t) => sum + t.monto, 0);
         
@@ -165,38 +164,39 @@ export default function PresupuestoScreen() {
                 return (
                   <View key={index} style={styles.conendorTransaccion}>
                     
-                    <View style={styles.iconoContenedor}>
-                      <Image source={iconoMeta} style={styles.imagenRestaurante} />
+                    <View style={styles.filaSuperior}>
+                        <View style={styles.iconoContenedor}>
+                        <Image source={iconoMeta} style={styles.imagenRestaurante} />
+                        </View>
+                        
+                        <View style={{flex:1, marginLeft: 15}}>
+                            <Text style={styles.textoTransaccion}>{b.descripcion}</Text>
+                            <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
+                        </View>
+
+                        <Text style={[styles.dineroComida, styles.dineroSalario]}>
+                        ${b.monto}
+                        </Text>
                     </View>
-                    
-                    <Text style={styles.textoTransaccion}>
-                        {b.descripcion}
-                    </Text>
-                    <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
-                    
-                    <Text style={[styles.dineroComida, styles.dineroSalario]}>
-                      ${b.monto}
-                    </Text>
 
-                    <View style={styles.bottomContainer}>
-                        <View style={styles.progressWrapper}>
-                            <View style={styles.progressTextRow}>
-                                <Text style={styles.progressText}>Gastado: ${b.gastado.toFixed(0)}</Text>
-                                <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
-                            </View>
-                            <View style={styles.barBackground}>
-                                <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
-                            </View>
+                    <View style={styles.progressContainer}>
+                        <View style={styles.progressTextRow}>
+                            <Text style={styles.progressText}>Gastado: ${b.gastado.toFixed(0)}</Text>
+                            <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
                         </View>
+                        <View style={styles.barBackground}>
+                            <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
+                        </View>
+                    </View>
 
-                        <View style={styles.actions}>
-                            <TouchableOpacity onPress={() => openEdit(b)} style={{marginRight: 10}}>
-                                <Ionicons name="pencil" size={18} color="#555" />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDelete(b.id)}>
-                                <Ionicons name="trash" size={18} color="#EF4444" />
-                            </TouchableOpacity>
-                        </View>
+                    {/* --- BOTONES DE TEXTO AQUÍ --- */}
+                    <View style={styles.botonesAccionContainer}>
+                        <TouchableOpacity onPress={() => openEdit(b)} style={styles.botonEditarItem}>
+                            <Text style={styles.textoBotonAccion}>Editar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDelete(b.id)} style={styles.botonEliminarItem}>
+                            <Text style={styles.textoBotonAccion}>Eliminar</Text>
+                        </TouchableOpacity>
                     </View>
 
                   </View>
@@ -206,6 +206,7 @@ export default function PresupuestoScreen() {
         </View>
       </ScrollView>
 
+      {/* Modal */}
       <Modal animationType='none' transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContenido}>
@@ -366,6 +367,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16
   },
+  // ----------------------------------------
   modalContainer: { 
     flex: 1, 
     justifyContent: 'center', 
