@@ -54,7 +54,7 @@ export default function LoginScreen({navigation}) {
 
           <View style={styles.switchStyle}>
             <Text style={styles.switchText}>Recordar sesión </Text>
-            <Switch value={recordarSesion} onValueChange={setRecordarSesion} trackColor={{ false: "#767577", true: "#d8c242ff" }}/>
+            <Switch value={recordar} onValueChange={setRecordar} trackColor={{ false: "#767577", true: "#d8c242ff" }}/>
           </View>
         
         <View style={styles.optionsContainer}>
