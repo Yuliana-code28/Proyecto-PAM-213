@@ -7,12 +7,23 @@ export default function PagarScreen({ navigation }) {
   const [montoPago, setMontoPago] = useState('');
   const [referenciaPago, setReferenciaPago] = useState('');
   const [descripcionPago, setDescripcionPago] = useState('');
+  const [pagos, setPagos] = useState([]);
 
   const guardarPago = () => {
     if (!montoPago || !referenciaPago) {
       Alert.alert('Error', 'Por favor completa monto y referencia');
       return;
     }
+
+    const nuevoPago = {
+    id: Date.now(),
+    monto: montoPago,
+    referencia: referenciaPago,
+    descripcion: descripcionPago,
+    fecha: new Date().toLocaleDateString(),
+  };
+
+  setPagos([...pagos, nuevoPago]); 
     Alert.alert('Éxito', `Pago registrado: $${montoPago} con referencia ${referenciaPago}`);
     setModalVisible(false);
     setMontoPago('');
@@ -34,10 +45,30 @@ export default function PagarScreen({ navigation }) {
           <Text style={styles.titulo}>Pagar</Text>
         </View>
 
-        {/* Lista estilo transacciones */}
+        {/* Lista pagos */}
         <View style={styles.transZona}>
+          {pagos.length === 0 ? (
           <Text style={styles.mensajeVacio}>Aún no hay pagos registrados</Text>
+          ) : (
+          pagos.map((pago) => (
+          <TouchableOpacity key={pago.id} style={styles.transaccion}>
+          <View style={[styles.transIconoContainer, { backgroundColor: '#FEE2E2' }]}>
+            <Ionicons name="cash-outline" size={22} color="#EF4444" />
+          </View>
+          <View style={styles.transDetalles}>
+            <Text style={styles.transNombre}>Referencia: {pago.referencia}</Text>
+            <Text style={styles.transCategoria}>Monto: ${pago.monto}</Text>
+            {pago.descripcion ? (
+              <Text style={styles.transCategoria}>Descripción: {pago.descripcion}</Text>
+            ) : null}
+          </View>
+        <View style={styles.transCantidadContainer}>
+          <Text style={styles.transFecha}>{pago.fecha}</Text>
         </View>
+      </TouchableOpacity>
+        ))
+      )}
+      </View>
 
         {/* Botón agregar */}
         <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>

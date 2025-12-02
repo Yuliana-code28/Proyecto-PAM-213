@@ -248,7 +248,7 @@ export default function DashboardScreen({ navigation }) {
                 
                 {/* Botón "ver todo" */}
                 <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Transacciones')}>
                     <Text style={styles.verTrans}>Ver todo</Text>
                 </TouchableOpacity>
                 </View>
@@ -308,7 +308,7 @@ export default function DashboardScreen({ navigation }) {
 
                 {/* Botón "ver todo" */}
                 <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Presupuestos')}>
                     <Text style={styles.verTrans}>Ver todo</Text>
                 </TouchableOpacity>
                 </View>

@@ -6,12 +6,23 @@ export default function CreditosScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [nombreCredito, setNombreCredito] = useState('');
   const [montoCredito, setMontoCredito] = useState('');
+  const [creditos, setCreditos] = useState([]);
+
 
   const guardarCredito = () => {
     if (!nombreCredito || !montoCredito) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
+
+    const nuevoCredito = {
+      id: Date.now(), // identificador único
+      nombre: nombreCredito,
+      monto: montoCredito,
+      fecha: new Date().toLocaleDateString(), // fecha actual
+    };
+    setCreditos([...creditos, nuevoCredito]);
+
     Alert.alert('Éxito', `Crédito agregado: ${nombreCredito} por $${montoCredito}`);
     setModalVisible(false);
     setNombreCredito('');
@@ -31,10 +42,28 @@ export default function CreditosScreen({ navigation }) {
           <Text style={styles.titulo}>Créditos</Text>
         </View>
 
-        {/* Lista estilo transacciones */}
+        {/* Lista transacciones */}
         <View style={styles.transZona}>
+          {creditos.length === 0 ? (
           <Text style={styles.mensajeVacio}>Aún no hay créditos</Text>
-        </View>
+          ) : (
+          creditos.map((credito) => (
+          <TouchableOpacity key={credito.id} style={styles.transaccion}>
+          <View style={[styles.transIconoContainer, { backgroundColor: '#DCFCE7' }]}>
+            <Ionicons name="cash-outline" size={22} color="#22C55E" />
+          </View>
+          <View style={styles.transDetalles}>
+            <Text style={styles.transNombre}>{credito.nombre}</Text>
+            <Text style={styles.transCategoria}>Monto: ${credito.monto}</Text>
+          </View>
+          <View style={styles.transCantidadContainer}>
+            <Text style={styles.transFecha}>{credito.fecha}</Text>
+          </View>
+        </TouchableOpacity>
+        ))
+        )}
+      </View>
+
 
         {/* Botón agregar */}
         <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
@@ -181,4 +210,40 @@ const styles = StyleSheet.create({
     color: '#333', 
     fontWeight: 'bold' 
  },
+ transaccion: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 12,
+  borderBottomWidth: 1,
+  borderBottomColor: '#F0F0F0',
+},
+transIconoContainer: {
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: 12,
+},
+transDetalles: { 
+  flex: 1 
+  },
+transNombre: { 
+  fontSize: 16, 
+  fontWeight: 'bold', 
+  color: '#000' 
+  },
+transCategoria: { 
+  fontSize: 14, 
+  color: '#777' 
+  },
+transCantidadContainer: { 
+  alignItems: 'flex-end' 
+  },
+transFecha: { 
+  fontSize: 12, 
+  color: '#999', 
+  marginTop: 2 
+  },
+
 });
