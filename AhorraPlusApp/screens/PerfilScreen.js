@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Text, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Image, Alert, Switch, Modal, TextInput } from 'react-native'
-import { useIsFocused } from '@react-navigation/native'
-
 import { useAuth } from '../contexto/AuthContext';
 import TransactionController from '../controllers/TransactionController';
 
@@ -15,17 +13,22 @@ const seguridadIcono = require('../assets/imagen/seguridad.png');
 
 export default function PerfilScreen({ navigation }) {
   
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, changeName, changePassword } = useAuth();
 
   const [totalTransacciones, setTotalTransacciones] = useState(0);
   const [totalCategorias, setTotalCategorias] = useState(0);
   const [diasActivos, setDiasActivos] = useState(0);
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editNombre, setEditNombre] = useState('');
-  const [editPassword, setEditPassword] = useState('');
-
+  // Estados para los modales
+  const [modalNombreVisible, setModalNombreVisible] = useState(false);
+  const [modalSeguridadVisible, setModalSeguridadVisible] = useState(false);
   const [notificacionesModalVisible, setNotificacionesModalVisible] = useState(false);
+
+  // Inputs
+  const [editNombre, setEditNombre] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [notifPresupuesto , setNotifPresupuesto] = useState(true);
   const [notifTransacciones, setNotifTransacciones] = useState(true);
 
@@ -36,14 +39,12 @@ export default function PerfilScreen({ navigation }) {
   }, [user]);
 
   const cargarEstadisticas = async () => {
-
-    const transacciones = await TransactionController.getAll(userId);
+    const transacciones = await TransactionController.getAll(user.id);
     setTotalTransacciones(transacciones.length);
     const categoriasUnicas = new Set(transacciones.map(t => t.categoria));
     setTotalCategorias(categoriasUnicas.size);
     const fechasUnicas = new Set(transacciones.map(t => t.fecha));
     setDiasActivos(fechasUnicas.size);
-
   };
 
   const formatearFecha = (fechaString) => {
@@ -65,28 +66,47 @@ export default function PerfilScreen({ navigation }) {
     ]);
   };
 
-  const abrirModalEditar = () => {
+  // --- Funciones para Editar Nombre ---
+  const abrirModalNombre = () => {
     setEditNombre(user.nombre);
-    setEditPassword(''); 
-    setModalVisible(true);
+    setModalNombreVisible(true);
   }
 
-  const abrirModalNotificaciones = () => {
-    setNotificacionesModalVisible(true);
+  const guardarNombre = async () => {
+      if(!editNombre.trim()){
+          Alert.alert("Error", "El nombre es requerido");
+          return;
+      }
+      const resultado = await changeName(editNombre);
+      if(resultado.success){
+          Alert.alert("Éxito", "Nombre actualizado correctamente");
+          setModalNombreVisible(false);
+      } else {
+          Alert.alert("Error", resultado.error);
+      }
   }
 
-  const guardarCambiosPerfil = async () => {
+  // --- Funciones para Seguridad (Password) ---
+  const abrirModalSeguridad = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+    setModalSeguridadVisible(true);
+  }
 
-      if(!editNombre.trim() || !editPassword.trim()){
-          Alert.alert("Error", "Nombre y Nueva Contraseña son requeridos");
+  const guardarPassword = async () => {
+      if(!newPassword.trim() || !confirmPassword.trim()){
+          Alert.alert("Error", "Todos los campos son requeridos");
+          return;
+      }
+      if(newPassword !== confirmPassword){
+          Alert.alert("Error", "Las contraseñas no coinciden");
           return;
       }
 
-      const resultado = await updateProfile(editNombre, editPassword);
-      
+      const resultado = await changePassword(newPassword);
       if(resultado.success){
-          Alert.alert("Éxito", "Perfil actualizado correctamente");
-          setModalVisible(false);
+          Alert.alert("Éxito", "Contraseña actualizada correctamente");
+          setModalSeguridadVisible(false);
       } else {
           Alert.alert("Error", resultado.error);
       }
@@ -139,18 +159,19 @@ export default function PerfilScreen({ navigation }) {
         </View>
 
         <View style={styles.tarjetaOpciones}>
-          <TouchableOpacity style={styles.itemOpcion} onPress={abrirModalEditar}>
+          {/* Botón Editar Perfil (Solo Nombre) */}
+          <TouchableOpacity style={styles.itemOpcion} onPress={abrirModalNombre}>
             <View style={styles.contenedorIconoOpcion}>
               <Image source={editarIcono} style={styles.campanaIcono} />
             </View>
             <View style={styles.contenedorTextoOpcion}>
               <Text style={styles.tituloOpcion}>Editar Perfil</Text>
-              <Text style={styles.subtituloOpcion}>Actualiza tu información</Text>
+              <Text style={styles.subtituloOpcion}>Actualiza tu nombre</Text>
             </View>
             <Text style={styles.flechaOpcion}>{'>'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.itemOpcion} onPress={abrirModalNotificaciones}>
+          <TouchableOpacity style={styles.itemOpcion} onPress={() => setNotificacionesModalVisible(true)}>
             <View style={styles.contenedorIconoOpcion}>
               <Image source={campanaIcono} style={styles.campanaIcono} />
             </View>
@@ -161,13 +182,14 @@ export default function PerfilScreen({ navigation }) {
             <Text style={styles.flechaOpcion}>{'>'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.itemOpcion, { borderBottomWidth: 0 }]}>
+          {/* Botón Seguridad (Cambiar Contraseña) */}
+          <TouchableOpacity style={[styles.itemOpcion, { borderBottomWidth: 0 }]} onPress={abrirModalSeguridad}>
             <View style={styles.contenedorIconoOpcion}>
               <Image source={seguridadIcono} style={styles.campanaIcono} />
             </View>
             <View style={styles.contenedorTextoOpcion}>
               <Text style={styles.tituloOpcion}>Seguridad</Text>
-              <Text style={styles.subtituloOpcion}>Contraseña y autenticación</Text>
+              <Text style={styles.subtituloOpcion}>Cambiar contraseña</Text>
             </View>
             <Text style={styles.flechaOpcion}>{'>'}</Text>
           </TouchableOpacity>
@@ -179,10 +201,11 @@ export default function PerfilScreen({ navigation }) {
 
       </ScrollView>
 
-      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+      {/* Modal Editar Nombre */}
+      <Modal animationType="slide" transparent={true} visible={modalNombreVisible} onRequestClose={() => setModalNombreVisible(false)}>
           <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Editar Perfil</Text>
+                  <Text style={styles.modalTitle}>Editar Nombre</Text>
                   
                   <View style={{alignItems:'center', marginBottom: 20}}>
                       <View style={styles.avatarGrande}>
@@ -198,20 +221,11 @@ export default function PerfilScreen({ navigation }) {
                       placeholder="Tu nombre"
                   />
 
-                  <Text style={styles.label}>Nueva Contraseña</Text>
-                  <TextInput 
-                      style={styles.inputModal} 
-                      value={editPassword} 
-                      onChangeText={setEditPassword} 
-                      placeholder="Nueva contraseña"
-                      secureTextEntry
-                  />
-
                   <View style={styles.modalButtons}>
-                      <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalVisible(false)}>
+                      <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalNombreVisible(false)}>
                           <Text style={{color: '#333'}}>Cancelar</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={[styles.modalBtn, styles.saveBtn]} onPress={guardarCambiosPerfil}>
+                      <TouchableOpacity style={[styles.modalBtn, styles.saveBtn]} onPress={guardarNombre}>
                           <Text style={{color: '#fff', fontWeight: 'bold'}}>Guardar</Text>
                       </TouchableOpacity>
                   </View>
@@ -219,6 +233,43 @@ export default function PerfilScreen({ navigation }) {
           </View>
       </Modal>
 
+      {/* Modal Seguridad (Contraseña) */}
+      <Modal animationType="slide" transparent={true} visible={modalSeguridadVisible} onRequestClose={() => setModalSeguridadVisible(false)}>
+          <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+
+                  <Text style={styles.label}>Nueva Contraseña</Text>
+                  <TextInput 
+                      style={styles.inputModal} 
+                      value={newPassword} 
+                      onChangeText={setNewPassword} 
+                      placeholder="Nueva contraseña"
+                      secureTextEntry
+                  />
+
+                  <Text style={styles.label}>Confirmar Contraseña</Text>
+                  <TextInput 
+                      style={styles.inputModal} 
+                      value={confirmPassword} 
+                      onChangeText={setConfirmPassword} 
+                      placeholder="Repite la contraseña"
+                      secureTextEntry
+                  />
+
+                  <View style={styles.modalButtons}>
+                      <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setModalSeguridadVisible(false)}>
+                          <Text style={{color: '#333'}}>Cancelar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[styles.modalBtn, styles.saveBtn]} onPress={guardarPassword}>
+                          <Text style={{color: '#fff', fontWeight: 'bold'}}>Guardar</Text>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </View>
+      </Modal>
+
+      {/* Modal Notificaciones */}
       <Modal animationType='fade' transparent={true} visible={notificacionesModalVisible} onRequestClose={() => setNotificacionesModalVisible(false)}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>

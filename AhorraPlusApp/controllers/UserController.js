@@ -107,6 +107,32 @@ export class UserController {
         }
     }
 
+    async updateName(id, nombre) {
+        try {
+            if (!nombre || nombre.trim().length === 0) throw new Error("El nombre es obligatorio");
+            const success = await DatabaseService.updateUserName(id, nombre);
+            if (success) return { success: true };
+        } catch (error) {
+            return {success: false, error: error.message}
+        }
+    }
+
+    async updatePassword(id, password) {
+        try {
+            if (!password) throw new Error('La contraseña es obligatoria');
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                throw new Error('La contraseña debe tener al menos 8 caracteres, incluir una mayúscula y un número')
+            }
+
+            const success = await DatabaseService.updateUserPassword(id, password);
+            if (success) return { success: true};
+            return {success: false, error: "No se pudo actualizar la contraseña"};
+        } catch (error) {
+            return { success: false, error: error.message}
+        }
+    }
+
     async updateUser(id, nombre, password) {
         try {
             if (!nombre.trim() || !password.trim()) throw new Error("Nombre y contraseña requeridos");

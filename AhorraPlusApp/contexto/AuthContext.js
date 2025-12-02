@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import UserController from '../controllers/UserController';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AuthContext = createContext();
 
@@ -41,6 +42,24 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await UserController.logout();
     setUser(null);
+  };
+
+  const changeName = async (nombre) => {
+    if (!user) return;
+    const result = await UserController.updateName(user.id, nombre);
+    if (result.success) {
+        const updatedUser = { ...user, nombre: nombre};
+        setUser(updatedUser);
+
+        await AsyncStorage.setItem('user_session', JSON.stringify(updatedUser));
+    }
+    return result;
+  }
+
+  const changePassword = async (password) => {
+    if (!user) return;
+    const result = await UserController.updatePassword(user.id, password);
+    return result;
   };
 
   const updateProfile = async (nombre, password) => {

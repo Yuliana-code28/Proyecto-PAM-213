@@ -82,10 +82,34 @@ class DatabaseService {
         );
     }
 
+    async updateUserName(id, nombre) {
+        try {
+            const result = await this.db.runAsync(
+                'UPDATE users SET nombre = ? WHERE id = ?',
+                nombre, id
+            );
+            return result.changes > 0;
+        } catch (error) {
+            throw new Error("Error al actualizar nombre: " + error.message);
+        }
+    }
+
+    async updateUserPassword(id, password) {
+        try {
+            const result = await this.db.runAsync(
+                'UPDATE users SET password = ? WHERE id = ?',
+                password, id
+            );
+            return result.changes > 0;
+        } catch (error) {
+            throw new Error("Error al actualizar contraseña: " + error.message);
+        }
+    }
+
     async updateUser(id, nombre, password) {
         try {
             const result = await this.db.runAsync(
-                'UPDATE users SET nombre = ?, password = ?, foto = ? WHERE id = ? ',
+                'UPDATE users SET nombre = ?, password = ? WHERE id = ? ',
                 nombre, password, id
             );
             return result.changes > 0;
@@ -141,8 +165,6 @@ class DatabaseService {
             throw error;
         }
     }
-
-   
 
     async setBudget(userId, monto, mes) {
         const existing = await this.db.getFirstAsync(
