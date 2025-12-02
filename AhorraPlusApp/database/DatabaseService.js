@@ -12,6 +12,8 @@ class DatabaseService {
         await this.db.execAsync(`
             PRAGMA foreing_keys = ON;
 
+            DROP TABLE IF EXISTS presupuestos;
+
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT NOT NULL,
@@ -193,6 +195,11 @@ class DatabaseService {
             'SELECT *FROM presupuestos WHERE user_id = ? AND mes = ?',
             userId, mes 
         );
+    }
+
+    async deleteBudget(id) {
+        const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', id);
+        return result.changes > 0;
     }
 }
 

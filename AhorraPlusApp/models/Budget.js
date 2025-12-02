@@ -1,5 +1,5 @@
 export class Budget {
-    constructor(id, userId, monto, mes) {
+    constructor(id, userId, monto, mes, descripcion) {
         this.id = id;
         this.userId = userId;
         this.monto = monto;
