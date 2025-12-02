@@ -13,20 +13,6 @@ const maleta = require('../assets/imagen/maleta.png');
 
 const datos = [
   { 
-    name: "Gastos",
-    dinero:"275",
-    monto: 40,
-    color: "#ff0000ff",
-  
-  },
-  { 
-    name: "Ingresos",
-    monto: 20,
-    dinero:"250",
-    color: "#00ff1eff",
-
-  },
-  { 
     name: "Comida",
     monto: 140,
     dinero:"1100",

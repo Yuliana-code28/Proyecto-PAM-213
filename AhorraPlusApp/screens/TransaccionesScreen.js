@@ -39,6 +39,16 @@ export default function TransaccionesScreen() {
   const [fechaFin, setFechaFin] = useState('');
   const [modalFiltroFecha, setModalFiltroFecha] = useState(false);
 
+ const validarFechas = (fechaInicio, fechaFin) => {
+  const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!fechaRegex.test(fechaInicio) || !fechaRegex.test(fechaFin)) return false;
+
+  if (new Date(fechaInicio) > new Date(fechaFin)) return false;
+
+  return true;
+};
+
   const limpiarFiltros = () => {
     setFiltroTipo("todos");      
     setSelectedCategory("todas"); 
@@ -436,14 +446,17 @@ export default function TransaccionesScreen() {
               </TouchableOpacity>
       
               <TouchableOpacity style={styles.btnSave}
-                onPress={async () => {
-                  if (!userId || !fechaInicio || !fechaFin) return;
-                  const resultados = await TransactionController.getFecha(userId, fechaInicio, fechaFin);
-                  setTransactions(resultados);
-                  setModalFiltroFecha(false);
-                }}
-              >
-              <Text style={styles.btnSaveText}>Filtrar</Text>
+                  onPress={async () => {
+                    if (!userId || !validarFechas(fechaInicio, fechaFin)){
+                      Alert.alert("Error", "Fechas inválidas. Asegúrate de que la fecha inicio no sea mayor a la fecha fin y que estén en formato YYYY-MM-DD.");
+                      return;
+                    } 
+                    const resultados = await TransactionController.getFecha(userId, fechaInicio, fechaFin);
+                    setTransactions(resultados);
+                    setModalFiltroFecha(false);
+                  }} >
+                  <Text style={styles.btnSaveText}>Filtrar</Text>
+              
               </TouchableOpacity>
              </View>
            </View>
