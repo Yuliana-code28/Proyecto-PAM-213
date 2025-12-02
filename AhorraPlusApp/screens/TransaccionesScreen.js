@@ -3,6 +3,8 @@ import { Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Mod
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
 
+
+
 const filtro = require('../assets/imagen/filtrar.png');
 const iconoGasto = require('../assets/imagen/gastos3.png');
 const iconoIngreso = require('../assets/imagen/ingresos2.png');
@@ -33,7 +35,17 @@ export default function TransaccionesScreen() {
   const [selectedCategory, setSelectedCategory] = useState("todas");
   const [modalFiltroTipo, setModalFiltroTipo] = useState(false);
 
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [modalFiltroFecha, setModalFiltroFecha] = useState(false);
 
+  const limpiarFiltros = () => {
+    setFiltroTipo("todos");      
+    setSelectedCategory("todas"); 
+    setTextoBusqueda("");        
+    setFechaInicio("");           
+    setFechaFin("");              
+  };
 
   const categorias = [
     "Comida",
@@ -47,21 +59,21 @@ export default function TransaccionesScreen() {
   const transaccionesFiltradas = transactions.filter((t) => {
   
     
-    if (filtroTipo !== "todos" && t.tipo !== filtroTipo) return false;
+    if (filtroTipo !== "todos" && t.tipo.trim() !== filtroTipo) return false;
   
   
     if (
       selectedCategory !== "todas" &&
-      t.categoria !== selectedCategory
+      t.categoria.trim() !== selectedCategory
     ) {
       return false;
     }
   
     
     if (textoBusqueda.trim() !== "") {
-      const texto = textoBusqueda.toLowerCase();
-      const coincideDescripcion = (t.descripcion || "")
-        .toLowerCase()
+      const texto = textoBusqueda.toLowerCase().trim();
+      const coincideDescripcion = (t.descripcion.trim() || "")
+        .toLowerCase().trim()
         .includes(texto);
       const coincideCategoria = (t.categoria || "")
         .toLowerCase()
@@ -80,6 +92,7 @@ export default function TransaccionesScreen() {
     };
     loadUser();
   }, []);
+  
 
   useEffect(() => {
     if (!userId) return;
@@ -195,23 +208,26 @@ export default function TransaccionesScreen() {
         />
 
         <View style={styles.botonera}>
-          <TouchableOpacity
-            style={styles.botonAbrirModal}
-            onPress={() => setModalFiltroTipo(true)}
-          >
+          <TouchableOpacity style={styles.botonAbrirModal}onPress={() => setModalFiltroTipo(true)}>
             <Text style={styles.textoAbrirModal}>Filtrar por tipo</Text>
           </TouchableOpacity>
         
-          <TouchableOpacity
-            style={styles.openFilterButton}
-            onPress={() => setCategoryModalVisible(true)}
-          >
+          <TouchableOpacity style={styles.openFilterButton} onPress={() => setCategoryModalVisible(true)}>
             <Text style={styles.openFilterButtonText}>Filtrar por categoría</Text>
           </TouchableOpacity>
         </View>
-
+        <View style={{marginLeft:20}}>
+        <TouchableOpacity style={styles.botonAbrirModal} onPress={() => setModalFiltroFecha(true)}>
+           <Text style={styles.textoAbrirModal}>Filtrar por Fecha</Text>
+        </TouchableOpacity>
+        </View>
+       
 
         <View style={styles.contenedorDeTodasLasTransaccione}>
+        <TouchableOpacity  style={styles.botonLimpiarFiltros} onPress={limpiarFiltros}>
+           <Text style={styles.textoLimpiarFiltros}>Recargar</Text>
+        </TouchableOpacity>
+
           {transaccionesFiltradas.length === 0 ? (
             <Text style={{ textAlign: "center", marginVertical: 30, fontSize: 16, color: "#555" }}>
               No hay transacciones registradas.
@@ -348,6 +364,8 @@ export default function TransaccionesScreen() {
       </View>
     </View>
   </Modal>
+
+
      <Modal animationType="fade" transparent={true} visible={modalFiltroTipo}>
        <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -390,6 +408,48 @@ export default function TransaccionesScreen() {
         </View>
        </View>
      </Modal>
+
+
+
+     <Modal animationType="fade" transparent={true} visible={modalFiltroFecha}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Filtrar por Fecha</Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Fecha Inicio (YYYY-MM-DD)"
+              value={fechaInicio}
+              onChangeText={setFechaInicio}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Fecha Fin (YYYY-MM-DD)"
+              value={fechaFin}
+              onChangeText={setFechaFin}
+            />
+
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={styles.btnCancel}  onPress={() => setModalFiltroFecha(false)}>
+                <Text style={styles.btnCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+      
+              <TouchableOpacity style={styles.btnSave}
+                onPress={async () => {
+                  if (!userId || !fechaInicio || !fechaFin) return;
+                  const resultados = await TransactionController.getFecha(userId, fechaInicio, fechaFin);
+                  setTransactions(resultados);
+                  setModalFiltroFecha(false);
+                }}
+              >
+              <Text style={styles.btnSaveText}>Filtrar</Text>
+              </TouchableOpacity>
+             </View>
+           </View>
+         </View>
+       </Modal>
+
     </View>
   );
 }
@@ -402,12 +462,13 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#e5dcb9ff'
+    backgroundColor: '#e5dcb9ff',
   },
 
   scrollContenido: {
     paddingBottom: 40,
-    flexGrow: 1
+    flexGrow: 1,
+    
   },
 
  
@@ -524,7 +585,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginRight: 15,
     borderRadius: 15,
-    paddingVertical: 15
+    paddingVertical: 15,
   },
 
   conendorTransaccion: {
@@ -614,6 +675,7 @@ const styles = StyleSheet.create({
 
 
   accionBoton: {
+    position:"absolute",
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     paddingVertical: 16,
@@ -621,7 +683,8 @@ const styles = StyleSheet.create({
     width: '22%',
     elevation: 4,
     left: 270,
-    marginBottom: 20
+    marginBottom: 20,
+    marginTop:"180%"
   },
 
   campanaIcono: {
@@ -794,11 +857,13 @@ const styles = StyleSheet.create({
      alignItems:"center",
      justifyContent:"center",
      backgroundColor:"black",
-     borderRadius:20,
+     borderRadius:10,
      height:45
   }, cancelarText:{
     fontSize: 20,
     color: "#fff"
+  },botonLimpiarFiltros:{
+    marginLeft:250
   }
 
 });

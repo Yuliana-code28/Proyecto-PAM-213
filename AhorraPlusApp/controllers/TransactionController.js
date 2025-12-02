@@ -117,10 +117,14 @@ export class TransactionController {
     }
   }
 
+  async getFecha(userId, fechaInicio, fechaFin) {
+    return await DatabaseService.getFechaTransacciones(userId, fechaInicio, fechaFin);
+  }
+
   addListener(callback) {
     this.listeners.push(callback);
   }
-
+  
   removeListener(callback) {
     this.listeners = this.listeners.filter((l) => l !== callback);
   }

@@ -1,6 +1,5 @@
 import * as SQLite from 'expo-sqlite'
 
-
 class DatabaseService {
     constructor() {
         this.db = null;
@@ -200,6 +199,15 @@ class DatabaseService {
     async deleteBudget(id) {
         const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', id);
         return result.changes > 0;
+    }
+
+    async getFechaTransacciones(userId, fechaInicio, fechaFin) {
+        return await this.db.getAllAsync(
+          `SELECT * FROM transacciones 
+           WHERE user_id = ? AND fecha BETWEEN ? AND ?
+           ORDER BY fecha DESC`,
+          userId, fechaInicio, fechaFin
+        );
     }
 }
 
