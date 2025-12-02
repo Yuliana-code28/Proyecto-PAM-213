@@ -111,7 +111,10 @@ export class UserController {
         try {
             if (!nombre || nombre.trim().length === 0) throw new Error("El nombre es obligatorio");
             const success = await DatabaseService.updateUserName(id, nombre);
-            if (success) return { success: true };
+            if (success) {
+                return { success: true };
+            }
+            return {success: false, error: "No se pudo actualizar el nombre"}
         } catch (error) {
             return {success: false, error: error.message}
         }
