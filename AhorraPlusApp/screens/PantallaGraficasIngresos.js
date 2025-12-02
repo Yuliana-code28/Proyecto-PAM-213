@@ -1,15 +1,15 @@
-import React, { useState, useEffect,useCallback  } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Image, ScrollView} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { PieChart } from "react-native-chart-kit";
+import { useFocusEffect } from '@react-navigation/native';
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
-import { useFocusEffect } from '@react-navigation/native';
  
 const maleta = require('../assets/imagen/maleta.png');
 
 const coloresTipos = {
-  Gastos: "#ff0000ff",
-  Ingresos: "#00ff1eff"
+  Gastos: "#EF4444", 
+  Ingresos: "#22C55E" 
 };
 
 export default function PantallaGraficasIngresos({ navigation }) {
@@ -25,7 +25,6 @@ export default function PantallaGraficasIngresos({ navigation }) {
     loadUser();
   }, []);
 
-  
   useFocusEffect(
     useCallback(() => {
       const fetchTransactions = async () => {
@@ -33,31 +32,48 @@ export default function PantallaGraficasIngresos({ navigation }) {
         const data = await TransactionController.getAll(userId);
         setTransactions(data);
       };
-  
       fetchTransactions();
     }, [userId])
   );
-  
 
   const totalGastos = transactions
-    .filter(t => t.tipo.trim() === 'gasto')
-    .reduce((suma, t) => suma + t.monto, 0);
+    .filter(t => t.tipo.toLowerCase().trim() === 'gasto')
+    .reduce((suma, t) => suma + parseFloat(t.monto), 0);
 
   const totalIngresos = transactions
-    .filter(t => t.tipo.trim() === 'ingreso')
-    .reduce((suma, t) => suma + t.monto, 0);
+    .filter(t => t.tipo.toLowerCase().trim() === 'ingreso')
+    .reduce((suma, t) => suma + parseFloat(t.monto), 0);
+
+  const balance = totalIngresos - totalGastos;
 
   const datos = [
-    { name: "Gastos", monto: totalGastos, dinero: totalGastos.toString(), color: coloresTipos.Gastos },
-    { name: "Ingresos", monto: totalIngresos, dinero: totalIngresos.toString(), color: coloresTipos.Ingresos }
+    { 
+      name: "Gastos", 
+      monto: totalGastos, 
+      color: coloresTipos.Gastos, 
+      legendFontColor: "#7F7F7F", 
+      legendFontSize: 15 
+    },
+    { 
+      name: "Ingresos", 
+      monto: totalIngresos, 
+      color: coloresTipos.Ingresos, 
+      legendFontColor: "#7F7F7F", 
+      legendFontSize: 15 
+    }
   ];
 
-  const total = datos.reduce((suma, item) => suma + item.monto, 0);
+  const datosGrafica = datos.filter(d => d.monto > 0);
+  const totalFlujo = totalGastos + totalIngresos;
 
   const porcentaje = datos.map(item => ({
     ...item,
-    porcentaje: total > 0 ? ((item.monto / total) * 100).toFixed(2) : 0
+    porcentaje: totalFlujo > 0 ? ((item.monto / totalFlujo) * 100).toFixed(1) : 0
   }));
+
+  const formatMoney = (amount) => {
+    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  };
 
   return (
     <View style={styles.container}>
@@ -65,7 +81,6 @@ export default function PantallaGraficasIngresos({ navigation }) {
       <View style={styles.titulo}>
         <Text style={styles.contenedorTitulo}>Gráficas</Text>
         <Image style={styles.imagenMale} source={maleta} />
-
         
         <View style={styles.pestanas}>
           <TouchableOpacity
@@ -87,23 +102,32 @@ export default function PantallaGraficasIngresos({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-
       
       <ScrollView contentContainerStyle={styles.scrollContenido}>
         <View style={styles.contenedor2}>
-          <Text style={styles.tituloGrafica}>Gastos vs Ingresos</Text>
-          <Text style={styles.dinero}>${totalGastos}</Text>
+          <Text style={styles.tituloGrafica}>Ingresos vs Gastos</Text>
+          <Text style={[styles.dinero, { color: balance >= 0 ? '#22C55E' : '#EF4444' }]}>
+            {formatMoney(balance)}
+          </Text>
+          <Text style={{color: '#555'}}>Balance Neto</Text>
 
-          <PieChart
-            data={datos}
-            width={300}
-            height={300}
-            paddingLeft={80}
-            accessor={'monto'}
-            backgroundColor={'transparent'}
-            chartConfig={{ color: () => "#ffff" }}
-            hasLegend={false}
-          />
+          {totalFlujo > 0 ? (
+            <PieChart
+              data={datosGrafica}
+              width={350}
+              height={220}
+              chartConfig={{
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              }}
+              accessor={'monto'}
+              backgroundColor={'transparent'}
+              paddingLeft={"15"}
+              center={[10, 0]}
+              hasLegend={false}
+            />
+          ) : (
+            <Text style={{marginTop: 20, color: '#777'}}>No hay datos suficientes</Text>
+          )}
         </View>
 
         <View style={styles.contenedorDesglose}>
@@ -115,7 +139,7 @@ export default function PantallaGraficasIngresos({ navigation }) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.textoPorcetaje}>{item.name}</Text>
               </View>
-              <Text style={[styles.Textoporcentajes, styles.textoDinero]}>${item.dinero}</Text>
+              <Text style={[styles.Textoporcentajes, styles.textoDinero]}>{formatMoney(item.monto)}</Text>
               <Text style={styles.Textoporcentajes}>{item.porcentaje}%</Text>
             </View>
           ))}
@@ -124,7 +148,6 @@ export default function PantallaGraficasIngresos({ navigation }) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   

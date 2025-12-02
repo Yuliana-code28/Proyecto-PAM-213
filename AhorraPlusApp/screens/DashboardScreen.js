@@ -1,47 +1,55 @@
 import React, {useCallback, useState}  from 'react';
-import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Modal,TextInput,Alert,Image} from 'react-native';
+import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Modal,Image, Alert} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../contexto/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import TransactionController from '../controllers/TransactionController'; // <--- 1. Importar Controlador
 
 const campanaIcono = require('../assets/imagen/campana.png');
-const agregarIcono = require('../assets/imagen/agregar.png');
 const transIcono = require('../assets/imagen/cartera.webp');
 const pagarIcono = require('../assets/imagen/pagar.png');
-const metaIcono = require('../assets/imagen/meta.jpg');
-const inicio = require('../assets/imagen/casa.png');
-const grafica = require('../assets/imagen/grafico.png');
-const perfil = require('../assets/imagen/user.png');
 
 export default function DashboardScreen({ navigation }) {
 
     const { user } = useAuth();
     const userId = user.id;
 
-    const [modalVisible,setModalVisible] = useState(false);
-    const [descripcion,setDescripcion] = useState('');
-    const [monto,setMonto] = useState('');
-    const [gasto, setGasto] = useState(true); //True = Gasto False = Ingreso
+    const [saldo, setSaldo] = useState(0);
+    const [totalIngresos, setTotalIngresos] = useState(0);
+    const [totalGastos, setTotalGastos] = useState(0);
+
     const [notificacionesVisible, setNotificacionesVisible] = useState(false);
     const [listaNotificaciones, setListaNotificaciones] = useState([]);
 
-
-    const [presupuestomodalVisible,setPresupuestoModalVisible] = useState(false);
-    const [montoPresupuesto,setMontoPresupuesto] =useState('');
-
     useFocusEffect(
         useCallback(() => {
-            const cargarNotificaciones = async () => {
+            const cargarDatos = async () => {
                 try {
                     const stored = await AsyncStorage.getItem('user_notifications');
                     if (stored) {
                         setListaNotificaciones(JSON.parse(stored));
                     }
                 } catch (e) { console.error(e);}
+
+                if (userId) {
+                    const transactions = await TransactionController.getAll(userId);
+                    
+                    const ingresosCalc = transactions
+                        .filter(t => t.tipo === 'ingreso')
+                        .reduce((sum, t) => sum + parseFloat(t.monto), 0);
+                        
+                    const gastosCalc = transactions
+                        .filter(t => t.tipo === 'gasto')
+                        .reduce((sum, t) => sum + parseFloat(t.monto), 0);
+
+                    setTotalIngresos(ingresosCalc);
+                    setTotalGastos(gastosCalc);
+                    setSaldo(ingresosCalc - gastosCalc);
+                }
             }
-            cargarNotificaciones();
-        }, [])
+            cargarDatos();
+        }, [userId])
     );
 
     const limpiarNotificaciones = async () => {
@@ -49,31 +57,13 @@ export default function DashboardScreen({ navigation }) {
         await AsyncStorage.removeItem('user_notifications')
     }
 
-    const botonGuardar = () => {
-        if (!descripcion || !monto) {
-            Alert.alert('Error', 'Por favor completa todos los campos');
-            return;
-        }
-
-        Alert.alert('Exito',`Transacción guardada: ${descripcion} por $${monto}`);
-        botonCerrar();
+    const formatMoney = (amount) => {
+        return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     };
-    const botonCerrar = () => {setModalVisible(false); setDescripcion(''); setMonto(''); setGasto(true);};
-
-    const botonGuardarPresupuesto = () => {
-        if (!montoPresupuesto) {
-            Alert.alert('Error', 'Por favor ingresa un monto de presupuesto');
-            return;
-        }
-
-        Alert.alert('Exito',`Presupuesto mensual guardado: $${montoPresupuesto}`);
-        botonCerrar();
-    };
-    const botonCerrarPresupuesto = () => {setPresupuestoModalVisible(false);setMontoPresupuesto('');};
 
     return(
         <View style={styles.main}>
-        
+
         <Modal animationType="slide" transparent={true} visible={notificacionesVisible} onRequestClose={() => setNotificacionesVisible(false)} >
             <View style={styles.modalContenedor}>
                 <View style={styles.modalVista}>
@@ -125,35 +115,32 @@ export default function DashboardScreen({ navigation }) {
             </View>
 
             <View style={styles.balanceContainer}>
-            <View style={styles.balanceLeft}>
-            <Text style={styles.balanceTitulo}>Saldo</Text>
-            <Text style={styles.balanceCantidad}>$45,280.32</Text>
-            
-            <View style={styles.iconRow}>
-            <View style={styles.iconCircle}>
-                <Ionicons name="card-outline" size={28} color="#000000" />
-            </View>
-            <Text style={styles.cardSub}>Tarjeta: Gold Premium</Text>
-            </View>
+                <View style={styles.balanceLeft}>
+                    <Text style={styles.balanceTitulo}>Saldo Total</Text>
+                    <Text style={styles.balanceCantidad}>{formatMoney(saldo)}</Text>
+                    
+                    <View style={styles.iconRow}>
+                        <View style={styles.iconCircle}>
+                            <Ionicons name="card-outline" size={28} color="#000000" />
+                        </View>
+                        <Text style={styles.cardSub}>Tarjeta: Gold Premium</Text>
+                    </View>
 
-            
-
-            <View style={styles.flowRow}>
-                <View>
-                <Text style={styles.flowTitle}>Ingresos</Text>
-                <Text style={styles.ingresoVerde}>+$3,300.00</Text>
+                    <View style={styles.flowRow}>
+                        <View>
+                            <Text style={styles.flowTitle}>Ingresos</Text>
+                            <Text style={styles.ingresoVerde}>+{formatMoney(totalIngresos)}</Text>
+                        </View>
+                        <View>
+                            <Text style={styles.flowTitle}>Gastos</Text>
+                            <Text style={styles.gastoRojo}>-{formatMoney(totalGastos)}</Text>
+                        </View>
+                    </View>
                 </View>
-            <View>
-                <Text style={styles.flowTitle}>Gastos</Text>
-                <Text style={styles.gastoRojo}>-$1,452.68</Text>
-            </View>
-            </View>
-            </View>
             </View>
 
 
             <View style={styles.crudRow}>
-
                 <TouchableOpacity style={styles.accionBoton} onPress={() => navigation.navigate('Creditos')}>
                     <Image source={transIcono} style={styles.campanaIcono}/>
                     <Text style={styles.accionTexto}>Créditos</Text>
@@ -163,121 +150,44 @@ export default function DashboardScreen({ navigation }) {
                     <Image source={pagarIcono} style={styles.campanaIcono}/>
                     <Text style={styles.accionTexto}>Pagar</Text>
                 </TouchableOpacity>
-
             </View>
 
             <View style={styles.transferencia}>
-                <Text style={styles.tituloTrans}>Transacciones Recientes</Text>
-                
+                <Text style={styles.tituloTrans}>Acceso Rápido</Text>
             </View>
 
             <View style={styles.transZona}>
-                <TouchableOpacity style={styles.transaccion}>
-                    <View style={[styles.transIconoContainer,{ backgroundColor: '#FEE2E2' },]}>
-                        <Text style={[styles.transFlecha, { color: '#EF4444' }]}>↑</Text>
-                    </View>
-                    <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Uber Eats</Text>
-                        <Text style={styles.transCategoria}>Comida</Text>
-                    </View>
-                    <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadRojo}>-$150.00</Text>
-                        <Text style={styles.transFecha}>2025-11-03</Text>
-                    </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.transaccion}>
+                
+                <TouchableOpacity style={styles.transaccion} onPress={() => navigation.navigate('Transacciones')}>
                     <View style={[styles.transIconoContainer,{ backgroundColor: '#DCFCE7' },]}>
-                        <Text style={[styles.transFlecha, { color: '#22C55E' }]}>↓</Text>
+                         <Ionicons name="list-outline" size={22} color="#22C55E" />
                     </View>
                     <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Pago mensual</Text>
-                        <Text style={styles.transCategoria}>Salario</Text>
+                        <Text style={styles.transNombre}>Ver Historial</Text>
+                        <Text style={styles.transCategoria}>Todas tus transacciones</Text>
                     </View>
                     <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadVerde}>+$2,500.00</Text>
-                        <Text style={styles.transFecha}>2025-10-31</Text>
+                         <Ionicons name="chevron-forward" size={20} color="#999" />
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.transaccion}>
+                <TouchableOpacity style={styles.transaccion} onPress={() => navigation.navigate('Presupuestos')}>
                     <View style={[styles.transIconoContainer,{ backgroundColor: '#FEE2E2' },]}>
-                        <Text style={[styles.transFlecha, { color: '#EF4444' }]}>↑</Text>
+                        <Ionicons name="pie-chart-outline" size={22} color="#EF4444" />
                     </View>
                     <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Gasolina</Text>
-                        <Text style={styles.transCategoria}>Transporte</Text>
+                        <Text style={styles.transNombre}>Presupuestos</Text>
+                        <Text style={styles.transCategoria}>Administra tus límites</Text>
                     </View>
                     <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadRojo}>-$89.00</Text>
-                        <Text style={styles.transFecha}>2025-10-31</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#999" />
                     </View>
                 </TouchableOpacity>
                 
-                {/* Botón "ver todo" */}
                 <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
-                <TouchableOpacity onPress={() => navigation.navigate('Transacciones')}>
-                    <Text style={styles.verTrans}>Ver todo</Text>
-                </TouchableOpacity>
-                </View>
-
-            </View>
-
-            {/* Lista de presupuestos recientes */}
-            <View style={styles.transferencia}>
-                <Text style={styles.tituloPresupuesto}>Presupuestos Recientes</Text>
-            </View>
-
-            <View style={styles.transZona}>
-                {/* Presupuesto 1 */}
-                <TouchableOpacity style={styles.transaccion}>
-                    <View style={[styles.transIconoContainer, { backgroundColor: '#DCFCE7' }]}>
-                        <Ionicons name="trending-up-outline" size={22} color="#22C55E" />
-                    </View>
-                    <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Comida</Text>
-                        <Text style={styles.transCategoria}>Presupuesto: $5,000 / Gastado: $2,500</Text>
-                    </View>
-                    <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadVerde}>50%</Text>
-                        <Text style={styles.transFecha}>2025-11-01</Text>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Presupuesto 2 */}
-                <TouchableOpacity style={styles.transaccion}>
-                    <View style={[styles.transIconoContainer, { backgroundColor: '#FEE2E2' }]}>
-                        <Ionicons name="trending-down-outline" size={22} color="#EF4444" />
-                    </View>
-                    <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Transporte</Text>
-                        <Text style={styles.transCategoria}>Presupuesto: $500 / Gastado: $620</Text>
-                    </View>
-                    <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadRojo}>124%</Text>
-                        <Text style={styles.transFecha}>2025-11-01</Text>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Presupuesto 3 */}
-                <TouchableOpacity style={styles.transaccion}>
-                    <View style={[styles.transIconoContainer, { backgroundColor: '#DCFCE7' }]}>
-                        <Ionicons name="trending-up-outline" size={22} color="#22C55E" />
-                    </View>
-                    <View style={styles.transDetalles}>
-                        <Text style={styles.transNombre}>Entretenimiento</Text>
-                        <Text style={styles.transCategoria}>Presupuesto: $1,000 / Gastado: $750</Text>
-                    </View>
-                    <View style={styles.transCantidadContainer}>
-                        <Text style={styles.transCantidadVerde}>75%</Text>
-                        <Text style={styles.transFecha}>2025-11-01</Text>
-                    </View>
-                </TouchableOpacity>
-
-                <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
-                <TouchableOpacity onPress={() => navigation.navigate('Presupuestos')}>
-                    <Text style={styles.verTrans}>Ver todo</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Transacciones')}>
+                        <Text style={styles.verTrans}>Ir a Transacciones</Text>
+                    </TouchableOpacity>
                 </View>
 
             </View>
@@ -286,7 +196,6 @@ export default function DashboardScreen({ navigation }) {
 
         </View>
     )
-
 }
 
 const styles = StyleSheet.create({
@@ -322,25 +231,25 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     balanceContainer: {
-    backgroundColor: '#000000ff',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 20,
-    marginVertical: 10,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width:'100%',
-    alignSelf:'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+        backgroundColor: '#000000ff',
+        borderRadius: 20,
+        padding: 20,
+        marginHorizontal: 0, 
+        marginVertical: 10,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        width:'100%',
+        alignSelf:'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     balanceLeft: {
-    flex: 1,
-    paddingRight: 12,
+        flex: 1,
+        paddingRight: 0,
     },
     balanceTitulo:{
         color:'#aaaaaaff',
@@ -354,29 +263,24 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     cardSub: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 4,
+        fontSize: 16,
+        color: '#555',
+        marginBottom: 4,
     },
     iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 4,
     },
     iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#d8c242ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8, 
-    },
-    iconInsideCircle: {
-    width: 32,
-    height: 32,
-    resizeMode: 'contain',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#d8c242ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8, 
     },
     flowRow: {
         flexDirection: 'row',
@@ -384,6 +288,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#444',
         paddingTop: 16,
+        marginTop: 10
     },
     flowTitle: {
         color: '#AAAAAA',
@@ -404,6 +309,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 24,
+        marginTop: 15
     },
     accionBoton: {
         backgroundColor: '#FFFFFF',
@@ -456,10 +362,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: 12,
     },
-    transFlecha: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
     transDetalles: {
         flex: 1, 
     },
@@ -474,58 +376,6 @@ const styles = StyleSheet.create({
     },
     transCantidadContainer: {
         alignItems: 'flex-end',
-    },
-    transCantidadRojo: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#EF4444',
-    },
-    transCantidadVerde: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#22C55E',
-    },
-    transFecha: {
-        fontSize: 12,
-        color: '#999',
-        marginTop: 2,
-    },
-    tituloPresupuesto: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#000000ff',
-        marginTop: 10,
-    },
-    contenedor3:{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 100,
-        backgroundColor: '#fff',
-        justifyContent: 'space-around',
-        alignItems:"center",
-        flexDirection:"row",
-        paddingTop:15,
-        paddingLeft:30,
-        paddingRight:30,
-        elevation: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#eee'
-    },
-    TextoYIcono:{
-        flex:1,
-        alignItems:"center",
-        justifyContent:"center"
-    },
-    TextoIcono:{
-        fontSize:12,
-        marginTop:5,
-    },
-    navegacion:{
-        width:"30%",
-        height:"40%",
-        resizeMode:"contain"
     },
     modalContenedor: {
         flex: 1,
@@ -547,42 +397,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#000',
     },
-    modalInput: {
-        width: '100%',
-        height: 50,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        marginBottom: 16,
-        backgroundColor: '#fff',
-        color: '#000',
-    },
-    switchContenedor: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 24,
-    },
-    switchTexto: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginHorizontal: 10,
-        color: '#888',
-    },
-    switchTextoActivoVerde: {
-        color: '#22C55E',
-        fontWeight: 'bold',
-    },
-    switchTextoActivoRojo: {
-        color: '#EF4444',
-        fontWeight: 'bold',
-    },
-    modalBotones: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
     botonBase: {
         flex: 1,
         paddingVertical: 12,
@@ -590,24 +404,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginHorizontal: 5,
     },
-    botonGuardar: {
-        backgroundColor: '#d8c242ff', 
-    },
-    botonGuardarTexto: {
-        color: '#000000ff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
     botonCancelar: {
         backgroundColor: '#f3f4f6',
         borderWidth: 1,
         borderColor: '#ccc',
         width: '40%',
-    },
-    botonCancelarTexto: {
-        color: '#333',
-        fontWeight: 'bold',
-        fontSize: 16,
     },
     notificacionItem: {
         flexDirection: 'row',
@@ -626,15 +427,5 @@ const styles = StyleSheet.create({
         color: '#000',  
         fontWeight: 'bold',
         fontSize: 16,
-    },
-    badge: {
-        position: 'absolute',
-        right: -2,
-        top: -2,
-        backgroundColor: 'red',
-        width: 10,
-        height: 10, 
-        borderRadius: 5,
     }
-
 });
