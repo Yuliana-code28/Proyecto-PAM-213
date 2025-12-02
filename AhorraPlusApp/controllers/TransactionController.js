@@ -83,26 +83,25 @@ export class TransactionController {
 
   async updateTransaction(id, userId, monto, categoria, descripcion, tipo, fecha) {
     if (!userId) throw new Error("Usuario no identificado");
-
+  
     try {
-      const result = await DatabaseService.updateTransaction(
-        id,
-        userId,
-        parseFloat(monto),
-        categoria,
-        descripcion,
-        tipo,
-        fecha
-      );
-
-      if (!result) throw new Error("No se pudo actualizar la transacción");
-
-      this.notifyListeners("updated");
-
-      return new Transaction(id, userId, monto, categoria, descripcion, tipo, fecha);
+        const result = await DatabaseService.updateTransaction(
+            id,
+            parseFloat(monto), 
+            categoria,         
+            descripcion,       
+            tipo,              
+            fecha              
+        );
+  
+        if (!result) throw new Error("No se pudo actualizar la transacción");
+  
+        this.notifyListeners("updated");
+  
+        return new Transaction(id, userId, monto, categoria, descripcion, tipo, fecha);
     } catch (error) {
-      console.error("Error al actualizar transacción:", error);
-      return null;
+        console.error("Error al actualizar transacción:", error);
+        return null;
     }
   }
 
