@@ -15,6 +15,8 @@ import TransaccionesScreen from "./screens/TransaccionesScreen";
 import PantallaGraficas from "./screens/PantallaGraficas";
 import InicioScreen from "./screens/InicioScreen";
 import PantallaGraficasIngresos from "./screens/PantallaGraficasIngresos";
+import PagarScreen from "./screens/PagarScreen";
+import CreditosScreen from "./screens/CreditosScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -78,7 +80,11 @@ const NavigationLayout = () => {
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {user ? (
-                    <Stack.Screen name="MainApp" component={MainTabs} />
+                    <>
+                      <Stack.Screen name="MainApp" component={MainTabs} />
+                      <Stack.Screen name="Creditos" component={CreditosScreen} />
+                      <Stack.Screen name="Pagar" component={PagarScreen} />
+                    </>
                 ) : (
                     <>
                         <Stack.Screen name="Inicio" component={InicioScreen} />
@@ -91,6 +97,7 @@ const NavigationLayout = () => {
         </NavigationContainer>
     );
 };
+
 
 export default function App() {
   return (

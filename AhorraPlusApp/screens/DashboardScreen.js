@@ -21,6 +21,8 @@ export default function DashboardScreen({ navigation }) {
     const [descripcion,setDescripcion] = useState('');
     const [monto,setMonto] = useState('');
     const [gasto, setGasto] = useState(true); //True = Gasto False = Ingreso
+    const [notificacionesVisible, setNotificacionesVisible] = useState(false);
+
 
     const [presupuestomodalVisible,setPresupuestoModalVisible] = useState(false);
     const [montoPresupuesto,setMontoPresupuesto] =useState('');
@@ -88,7 +90,7 @@ export default function DashboardScreen({ navigation }) {
             </View>
 
         </Modal>
-
+        {/* Modal Presupuesto */}
         <Modal animationType="slide" transparent={true} visible={presupuestomodalVisible} onRequestClose={botonCerrarPresupuesto}>
         
         <View style={styles.modalContenedor}>
@@ -116,6 +118,28 @@ export default function DashboardScreen({ navigation }) {
         </View>
 
         </Modal>
+        {/*Modal Notificaciones */}
+        <Modal
+        animationType="slide"
+        transparent={true}
+        visible={notificacionesVisible}
+        onRequestClose={() => setNotificacionesVisible(false)}
+        >
+            <View style={styles.modalContenedor}>
+                <View style={styles.modalVista}>
+                    <Text style={styles.modalTitulo}>Notificaciones</Text>
+                    {/* Notificación precargada */}
+                        <View style={styles.notificacionItem}>
+                            <Ionicons name="notifications-outline" size={22} color="#000" style={{ marginRight: 8 }} />
+                            <Text style={styles.notificacionTexto}> Bienvenido a Ahorra+, tu app de finanzas personales.</Text>
+                        </View>
+                    <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={() => setNotificacionesVisible(false)}>
+                        <Text style={styles.cerrarTexto}>Cerrar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+
 
         <ScrollView contentContainerStyle={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor='#e5dcb9ff'/>
@@ -126,9 +150,10 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={styles.bienvenida}>Bienvenido de Vuelta</Text>
                 </View>
 
-                <TouchableOpacity>
-                    <Image source={campanaIcono} style={styles.campanaIcono}/>
-                </TouchableOpacity>
+            <TouchableOpacity onPress={() => setNotificacionesVisible(true)}>
+                <Image source={campanaIcono} style={styles.campanaIcono}/>
+            </TouchableOpacity>
+
             </View>
 
             <View style={styles.balanceContainer}>
@@ -161,20 +186,16 @@ export default function DashboardScreen({ navigation }) {
 
             <View style={styles.crudRow}>
 
-                <TouchableOpacity style={styles.accionBoton}>
+                <TouchableOpacity style={styles.accionBoton} onPress={() => navigation.navigate('Creditos')}>
                     <Image source={transIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Creditos</Text>
+                    <Text style={styles.accionTexto}>Créditos</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.accionBoton}>
+                <TouchableOpacity style={styles.accionBoton} onPress={() => navigation.navigate('Pagar')}>
                     <Image source={pagarIcono} style={styles.campanaIcono}/>
                     <Text style={styles.accionTexto}>Pagar</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.accionBoton} onPress={() => setPresupuestoModalVisible(true)}>
-                    <Image source={metaIcono} style={styles.campanaIcono}/>
-                    <Text style={styles.accionTexto}>Presupuestos</Text>
-                </TouchableOpacity>
             </View>
 
             <View style={styles.transferencia}>
@@ -224,6 +245,73 @@ export default function DashboardScreen({ navigation }) {
                         <Text style={styles.transFecha}>2025-10-31</Text>
                     </View>
                 </TouchableOpacity>
+                
+                {/* Botón "ver todo" */}
+                <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
+                <TouchableOpacity>
+                    <Text style={styles.verTrans}>Ver todo</Text>
+                </TouchableOpacity>
+                </View>
+
+            </View>
+
+            {/* Lista de presupuestos recientes */}
+            <View style={styles.transferencia}>
+                <Text style={styles.tituloPresupuesto}>Presupuestos Recientes</Text>
+            </View>
+
+            <View style={styles.transZona}>
+                {/* Presupuesto 1 */}
+                <TouchableOpacity style={styles.transaccion}>
+                    <View style={[styles.transIconoContainer, { backgroundColor: '#DCFCE7' }]}>
+                        <Ionicons name="trending-up-outline" size={22} color="#22C55E" />
+                    </View>
+                    <View style={styles.transDetalles}>
+                        <Text style={styles.transNombre}>Comida</Text>
+                        <Text style={styles.transCategoria}>Presupuesto: $5,000 / Gastado: $2,500</Text>
+                    </View>
+                    <View style={styles.transCantidadContainer}>
+                        <Text style={styles.transCantidadVerde}>50%</Text>
+                        <Text style={styles.transFecha}>2025-11-01</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Presupuesto 2 */}
+                <TouchableOpacity style={styles.transaccion}>
+                    <View style={[styles.transIconoContainer, { backgroundColor: '#FEE2E2' }]}>
+                        <Ionicons name="trending-down-outline" size={22} color="#EF4444" />
+                    </View>
+                    <View style={styles.transDetalles}>
+                        <Text style={styles.transNombre}>Transporte</Text>
+                        <Text style={styles.transCategoria}>Presupuesto: $500 / Gastado: $620</Text>
+                    </View>
+                    <View style={styles.transCantidadContainer}>
+                        <Text style={styles.transCantidadRojo}>124%</Text>
+                        <Text style={styles.transFecha}>2025-11-01</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Presupuesto 3 */}
+                <TouchableOpacity style={styles.transaccion}>
+                    <View style={[styles.transIconoContainer, { backgroundColor: '#DCFCE7' }]}>
+                        <Ionicons name="trending-up-outline" size={22} color="#22C55E" />
+                    </View>
+                    <View style={styles.transDetalles}>
+                        <Text style={styles.transNombre}>Entretenimiento</Text>
+                        <Text style={styles.transCategoria}>Presupuesto: $1,000 / Gastado: $750</Text>
+                    </View>
+                    <View style={styles.transCantidadContainer}>
+                        <Text style={styles.transCantidadVerde}>75%</Text>
+                        <Text style={styles.transFecha}>2025-11-01</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Botón "ver todo" */}
+                <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
+                <TouchableOpacity>
+                    <Text style={styles.verTrans}>Ver todo</Text>
+                </TouchableOpacity>
+                </View>
 
             </View>
 
@@ -316,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#d8c242ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8, // separación entre ícono y texto
+    marginRight: 8, 
     },
     iconInsideCircle: {
     width: 32,
@@ -355,7 +443,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingVertical: 16,
         alignItems: 'center',
-        width: '32%',
+        width: '48%',
         elevation: 4,
     },
     accionTexto: {
@@ -375,7 +463,7 @@ const styles = StyleSheet.create({
         color: '#000000ff',
     },
     verTrans: {
-        color: '#d8c242ff',
+        color: '#000000ff',
         fontWeight: '600',
         fontSize: 14,
     },
@@ -434,6 +522,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#999',
         marginTop: 2,
+    },
+    tituloPresupuesto: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#000000ff',
+        marginTop: 10,
     },
     contenedor3:{
         position: 'absolute',
@@ -541,10 +635,30 @@ const styles = StyleSheet.create({
         backgroundColor: '#f3f4f6',
         borderWidth: 1,
         borderColor: '#ccc',
+        width: '40%',
     },
     botonCancelarTexto: {
         color: '#333',
         fontWeight: 'bold',
         fontSize: 16,
     },
+    notificacionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    notificacionTexto: {
+        fontSize: 14,
+        color: '#333',
+        flex: 1,
+    },
+    cerrarTexto: {
+        color: '#000',  
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+
 });
