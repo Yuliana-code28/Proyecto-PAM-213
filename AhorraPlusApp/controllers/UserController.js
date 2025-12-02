@@ -36,8 +36,7 @@ export class UserController {
                     userRaw.nombre,
                     userRaw.correo,
                     userRaw.telefono,
-                    userRaw.fecha_creacion,
-                    userRaw.foto
+                    userRaw.fecha_creacion
                 );
 
                 if (recordar) {
@@ -108,11 +107,11 @@ export class UserController {
         }
     }
 
-    async updateUser(id, nombre, password, foto) {
+    async updateUser(id, nombre, password) {
         try {
             if (!nombre.trim() || !password.trim()) throw new Error("Nombre y contraseña requeridos");
             
-            const success = await DatabaseService.updateUser(id, nombre, password, foto);
+            const success = await DatabaseService.updateUser(id, nombre, password);
             if (success) {
                 return { success: true };
             }

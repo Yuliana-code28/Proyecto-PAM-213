@@ -1,6 +1,7 @@
 import React, {useState}  from 'react';
 import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Modal,TextInput,Alert,Image} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useAuth } from '../contexto/AuthContext';
 
 const campanaIcono = require('../assets/imagen/campana.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
@@ -11,7 +12,10 @@ const inicio = require('../assets/imagen/casa.png');
 const grafica = require('../assets/imagen/grafico.png');
 const perfil = require('../assets/imagen/user.png');
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
+
+    const { user } = useAuth();
+    const userId = user.id;
 
     const [modalVisible,setModalVisible] = useState(false);
     const [descripcion,setDescripcion] = useState('');
@@ -118,7 +122,7 @@ export default function DashboardScreen() {
 
             <View style={styles.saludo}>
                 <View>
-                    <Text style={styles.titlesaludo}>¡Hola, Usuario!</Text>
+                    <Text style={styles.titlesaludo}>¡Hola, {user.nombre}!</Text>
                     <Text style={styles.bienvenida}>Bienvenido de Vuelta</Text>
                 </View>
 

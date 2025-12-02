@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Text, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Image, Alert, Switch, Modal, TextInput } from 'react-native'
 import { useIsFocused } from '@react-navigation/native'
-import * as ImagePicker from 'expo-image-picker'
 
+import { useAuth } from '../contexto/AuthContext';
 import TransactionController from '../controllers/TransactionController';
-import UserController from '../controllers/UserController';
 
 const transIcono = require('../assets/imagen/trans.png');
 const perfil = require('../assets/imagen/user.png');
@@ -14,19 +13,9 @@ const editarIcono = require('../assets/imagen/editar.png');
 const campanaIcono = require('../assets/imagen/campana.png');
 const seguridadIcono = require('../assets/imagen/seguridad.png');
 
-export default function PerfilScreen({ route, navigation }) {
-  const { user } = route.params || {};
-  const userId = user ? user.id : 1;
-
-  const isFocused = useIsFocused();
-
-  const [datosUsuario, setDatosUsuario] = useState({
-    nombre: 'Cargando...',
-    correo: 'Cargando...',
-    password: '', 
-    fechaCreacion: new Date().toISOString(),
-    foto: null
-  });
+export default function PerfilScreen({ navigation }) {
+  
+  const { user, logout, updateProfile } = useAuth();
 
   const [totalTransacciones, setTotalTransacciones] = useState(0);
   const [totalCategorias, setTotalCategorias] = useState(0);
@@ -35,25 +24,18 @@ export default function PerfilScreen({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [editNombre, setEditNombre] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editFoto, setEditFoto] = useState(null);
 
   const [notificacionesModalVisible, setNotificacionesModalVisible] = useState(false);
   const [notifPresupuesto , setNotifPresupuesto] = useState(true);
   const [notifTransacciones, setNotifTransacciones] = useState(true);
 
   useEffect(() => {
-    if (isFocused) {
-      cargarTodo();
+    if (user) {
+      cargarEstadisticas();
     }
-  }, [isFocused]);
+  }, [user]);
 
-  const cargarTodo = async () => {
-    const usuarioReal = await UserController.getUser(userId);
-    if (usuarioReal) {
-      setDatosUsuario(usuarioReal);
-      setEditNombre(usuarioReal.nombre);
-      setEditFoto(usuarioReal.foto);
-    }
+  const cargarEstadisticas = async () => {
 
     const transacciones = await TransactionController.getAll(userId);
     setTotalTransacciones(transacciones.length);
@@ -61,6 +43,7 @@ export default function PerfilScreen({ route, navigation }) {
     setTotalCategorias(categoriasUnicas.size);
     const fechasUnicas = new Set(transacciones.map(t => t.fecha));
     setDiasActivos(fechasUnicas.size);
+
   };
 
   const formatearFecha = (fechaString) => {
@@ -78,19 +61,12 @@ export default function PerfilScreen({ route, navigation }) {
   const handleCerrarSesion = () => {
     Alert.alert("Cerrar Sesión", "¿Estás seguro de que quieres salir?", [
       { text: "Cancelar" },
-      { text: "Salir",
-        onPress: async () => {
-          await UserController.logout();
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Inicio' }]
-          })
-        } }
+      { text: "Salir", onPress: () => logout() }
     ]);
   };
 
   const abrirModalEditar = () => {
-    setEditNombre(datosUsuario.nombre);
+    setEditNombre(user.nombre);
     setEditPassword(''); 
     setModalVisible(true);
   }
@@ -100,39 +76,20 @@ export default function PerfilScreen({ route, navigation }) {
   }
 
   const guardarCambiosPerfil = async () => {
+
       if(!editNombre.trim() || !editPassword.trim()){
           Alert.alert("Error", "Nombre y Nueva Contraseña son requeridos");
           return;
       }
 
-      const resultado = await UserController.updateUser(userId, editNombre, editPassword);
+      const resultado = await updateProfile(editNombre, editPassword);
       
       if(resultado.success){
           Alert.alert("Éxito", "Perfil actualizado correctamente");
           setModalVisible(false);
-          cargarTodo(); 
       } else {
           Alert.alert("Error", resultado.error);
       }
-  }
-
-  const cambiarFoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert("Permiso denegado", "Necesitamos permiso para acceder a tus fotos.");
-      return;
-    }
-    
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setEditFoto(result.assets[0].uri);
-    };
   }
 
   return (
@@ -146,16 +103,12 @@ export default function PerfilScreen({ route, navigation }) {
 
         <View style={styles.tarjetaUsuario}>
           <View style={styles.avatar}>
-            {datosUsuario.foto ? (
-              <Image source={{ uri: datosUsuario.foto }} style={styles.avatarImagen} />
-            ) : (
-              <Image source={perfil} style={styles.campanaIcono} />
-            )}
+            <Image source={perfil} style={styles.campanaIcono} />
           </View>
           <View style={styles.infoUsuarioTexto}>
-            <Text style={styles.nombreUsuario}>{datosUsuario.nombre}</Text>
-            <Text style={styles.correoUsuario}>{datosUsuario.correo}</Text>
-            <Text style={styles.miembroDesde}>{formatearFecha(datosUsuario.fechaCreacion)}</Text>
+            <Text style={styles.nombreUsuario}>{user.nombre}</Text>
+            <Text style={styles.correoUsuario}>{user.correo}</Text>
+            <Text style={styles.miembroDesde}>{formatearFecha(user.fechaCreacion)}</Text>
           </View>
         </View>
 
@@ -235,9 +188,6 @@ export default function PerfilScreen({ route, navigation }) {
                       <View style={styles.avatarGrande}>
                          <Image source={perfil} style={{width: 50, height: 50}} />
                       </View>
-                      <TouchableOpacity onPress={cambiarFoto}>
-                          <Text style={{color: '#d8c242ff', fontWeight: 'bold', marginTop: 10}}>Cambiar Foto</Text>
-                      </TouchableOpacity>
                   </View>
 
                   <Text style={styles.label}>Nombre</Text>

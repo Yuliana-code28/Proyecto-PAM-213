@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet, Image, View, ActivityIndicator, Text, StatusBar } from "react-native";
 
-import UserController from "./controllers/UserController";
+import { AuthProvider, useAuth } from "./contexto/AuthContext";
 
 import LoginScreen from "./screens/LoginScreen";
 import RegistroScreen from "./screens/RegistroScreen";
@@ -38,6 +38,7 @@ function MainTabs() {
         let iconsource;
         
         if (route.name === 'Dashboard') {
+
           iconsource = require('./assets/imagen/casa.png');
         } else if (route.name === 'Transacciones') {
           iconsource = require('./assets/imagen/trans.png');
@@ -46,10 +47,9 @@ function MainTabs() {
         } else if (route.name === 'Perfil') {
           iconsource = require('./assets/imagen/user.png');
         }
-
         return (
           <Image source={iconsource} style={[styles.tabBarIcon, { width: size, height: size, tintColor: color }]} />
-        );
+        )
       }
     })}>
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
@@ -60,77 +60,43 @@ function MainTabs() {
   );
 }
 
-export default function App() {
-  const [isReady, setIsReady] = useState(false);
-  const [initialRoute, setInitialRoute] = useState("Inicio"); 
-  const [initialUser, setInitialUser] = useState(null);
+const NavigationLayout = () => {
+    const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    const prepararApp = async () => {
-      try {
+    if (isLoading) {
+        return (
+          <View style={styles.splashContainer}>
+              <StatusBar barStyle="light-content" backgroundColor="#202020ff"/>
+              <Image source={require('./assets/imagen/AhorraPlusApp.png')} style={styles.logo}/>
+              <Text style={styles.title}>Ahorra +</Text>
+              <ActivityIndicator size="large" color="#e5dcb9ff" />
+          </View>
+        );
+    }
 
-        await Promise.all([
-            
-            new Promise(resolve => setTimeout(resolve, 3000)),
-            
-            
-            (async () => {
-                console.log("Iniciando Base de Datos...");
-                await UserController.initialize();
-                
-                const sessionUser = await UserController.getActiveSession();
-                if (sessionUser) {
-                    console.log("Sesión recuperada:", sessionUser.nombre);
-                    setInitialUser(sessionUser);
-                    setInitialRoute("MainApp");
-                } else {
-                    console.log("No hay sesión, ir a Inicio");
-                    setInitialRoute("Inicio");
-                }
-            })()
-        ]);
-
-      } catch (error) {
-        console.error("Error inicializando:", error);
-      } finally {
-        setIsReady(true);
-      }
-    };
-
-    prepararApp();
-  }, []);
-
-  if (!isReady) {
     return (
-      <View style={styles.splashContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="#202020ff"/>
-          
-          <Image source={require('./assets/imagen/AhorraPlusApp.png')} style={styles.splashLogo}/>
-          
-          <Text style={styles.splashTitle}>Ahorra +</Text>
-          <Text style={styles.splashSubtitle}>Tus finanzas bajo control</Text>
-          
-          <ActivityIndicator size="large" color="#e5dcb9ff" style={{marginTop: 50}}/>
-      </View>
+        <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {user ? (
+                    <Stack.Screen name="MainApp" component={MainTabs} />
+                ) : (
+                    <>
+                        <Stack.Screen name="Inicio" component={InicioScreen} />
+                        <Stack.Screen name="Login" component={LoginScreen} />
+                        <Stack.Screen name="Registro" component={RegistroScreen} />
+                        <Stack.Screen name="Restablecer" component={RestablecerScreen} />
+                    </>
+                )}
+            </Stack.Navigator>
+        </NavigationContainer>
     );
-  }
+};
 
+export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-
-        <Stack.Screen name="Inicio" component={InicioScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Registro" component={RegistroScreen} />
-        <Stack.Screen name="Restablecer" component={RestablecerScreen} />
-        
-        <Stack.Screen 
-            name="MainApp" 
-            component={MainTabs} 
-            initialParams={initialUser ? { user: initialUser } : undefined} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <AuthProvider>
+          <NavigationLayout />
+      </AuthProvider>
   );
 }
 

@@ -51,10 +51,10 @@ class DatabaseService {
     async registerUser(nombre, correo, telefono, password) {
         try {
             const result = await this.db.runAsync(
-                'INSERT INTO users (nombre, correo, telefono, password, foto) VALUES (?, ?, ?, ?, ?)',
-                nombre, correo, telefono, password, null
+                'INSERT INTO users (nombre, correo, telefono, password) VALUES (?, ?, ?, ?)',
+                nombre, correo, telefono, password
             );
-            return {id: result.lastInsertRowId, nombre, correo, foto: null, fecha_creacion: new Date().toISOString() };
+            return {id: result.lastInsertRowId, nombre, correo, fecha_creacion: new Date().toISOString() };
         } catch (error) {
             throw new Error("Error al registrar usuario: " + error.message);
         }
@@ -82,11 +82,11 @@ class DatabaseService {
         );
     }
 
-    async updateUser(id, nombre, password, foto) {
+    async updateUser(id, nombre, password) {
         try {
             const result = await this.db.runAsync(
                 'UPDATE users SET nombre = ?, password = ?, foto = ? WHERE id = ? ',
-                nombre, password, foto, id
+                nombre, password, id
             );
             return result.changes > 0;
         } catch (error){
@@ -146,7 +146,7 @@ class DatabaseService {
 
     async setBudget(userId, monto, mes) {
         const existing = await this.db.getFirstAsync(
-            'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
+            'SELECT * FROM presupuesto WHERE user_id = ? AND mes = ?',
             userId, mes
         );
 

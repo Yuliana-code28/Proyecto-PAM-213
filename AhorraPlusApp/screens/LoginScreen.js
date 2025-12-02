@@ -1,34 +1,24 @@
 import React, {useState} from 'react'
-import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert, Platform } from 'react-native'
-import UserController from '../controllers/UserController';
+import { Text, TextInput, TouchableOpacity, StatusBar, StyleSheet, View, ScrollView, Switch, Alert } from 'react-native'
+import { useAuth } from '../contexto/AuthContext';
+
 export default function LoginScreen({navigation}) {
-
+    const { login } = useAuth();     
     const [correo, setCorreo] = useState('');
-    const[contraseña, setContraseña]= useState(''); 
-    const [terminos, setTerminos] = useState(false);
-    const [recordarSesion, setRecordarSesion] = useState(false); 
+    const [contraseña, setContraseña]= useState(''); 
+    const [terminos, setTerminos] = useState(false); 
+    const [recordar, setRecordar] = useState(false);
 
-  const handleLogin = async () => {
-    if (!correo || !contraseña) {
-      Alert.alert('Error', 'Ingresa correo y contraseña');
-      return;
-    }
-    if (!terminos) {
-      Alert.alert('Atención', 'Acepta los términos para continuar');
-      return;
-    }
-    
-    const resultado = await UserController.login(correo, contraseña, recordarSesion);
+    const handleLogin = async () => {
+        if (!correo || !contraseña) return Alert.alert('Error', 'Ingresa credenciales');
+        if (!terminos) return Alert.alert('Atención', 'Acepta términos');
 
-    if (resultado.success) {
-      navigation.replace('MainApp', {
-        screen: 'Dashboard',
-        params: { user: resultado.user } 
-      });
-    } else {
-      Alert.alert('Error de inicio de sesión', resultado.error);
-    }
-  };
+        const resultado = await login(correo, contraseña, recordar);
+
+        if (!resultado.success) {
+            Alert.alert('Error', resultado.error);
+        }
+    };
 
     return (
       <ScrollView contentContainerStyle={styles.container}>
