@@ -1,7 +1,9 @@
-import React, {useState}  from 'react';
+import React, {useCallback, useState}  from 'react';
 import {Text,TouchableOpacity,StatusBar,StyleSheet,View,ScrollView,Switch,Modal,TextInput,Alert,Image} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../contexto/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const campanaIcono = require('../assets/imagen/campana.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
@@ -22,10 +24,30 @@ export default function DashboardScreen({ navigation }) {
     const [monto,setMonto] = useState('');
     const [gasto, setGasto] = useState(true); //True = Gasto False = Ingreso
     const [notificacionesVisible, setNotificacionesVisible] = useState(false);
+    const [listaNotificaciones, setListaNotificaciones] = useState([]);
 
 
     const [presupuestomodalVisible,setPresupuestoModalVisible] = useState(false);
     const [montoPresupuesto,setMontoPresupuesto] =useState('');
+
+    useFocusEffect(
+        useCallback(() => {
+            const cargarNotificaciones = async () => {
+                try {
+                    const stored = await AsyncStorage.getItem('user_notifications');
+                    if (stored) {
+                        setListaNotificaciones(JSON.parse(stored));
+                    }
+                } catch (e) { console.error(e);}
+            }
+            cargarNotificaciones();
+        }, [])
+    );
+
+    const limpiarNotificaciones = async () => {
+        setListaNotificaciones([]);
+        await AsyncStorage.removeItem('user_notifications')
+    }
 
     const botonGuardar = () => {
         if (!descripcion || !monto) {
@@ -52,90 +74,36 @@ export default function DashboardScreen({ navigation }) {
     return(
         <View style={styles.main}>
         
-        <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={botonCerrar}>
-        
-            <View style={styles.modalContenedor}>
-          
-                <View style={styles.modalVista}>
-            
-                    <Text style={styles.modalTitulo}>Agregar Transacción</Text>
-
-                    <TextInput style={styles.modalInput} placeholder="Descripción" placeholderTextColor="#888" value={descripcion} onChangeText={setDescripcion}/>
-                    <TextInput style={styles.modalInput} placeholder="Monto" placeholderTextColor="#888" keyboardType="numeric" value={monto} onChangeText={setMonto}/>
-
-                    <View style={styles.switchContenedor}>
-              
-                        <Text style={[ styles.switchTexto, !gasto && styles.switchTextoActivoVerde]}>Ingreso</Text>
-              
-                        <Switch trackColor={{ false: '#DCFCE7', true: '#FEE2E2' }} thumbColor={gasto ? '#EF4444' : '#22C55E'} onValueChange={() => setGasto(!gasto)} value={gasto}/>
-              
-                        <Text style={[styles.switchTexto, gasto && styles.switchTextoActivoRojo]}>Gasto</Text>
-                
-                    </View>
-
-                    <View style={styles.modalBotones}>
-              
-                        <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrar}>
-                            <Text style={styles.botonCancelarTexto}>Cancelar</Text>
-                        </TouchableOpacity>
-              
-                        <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardar}>
-                            <Text style={styles.botonGuardarTexto}>Guardar</Text>
-                        </TouchableOpacity>
-
-                    </View>
-
-                </View>
-
-            </View>
-
-        </Modal>
-        {/* Modal Presupuesto */}
-        <Modal animationType="slide" transparent={true} visible={presupuestomodalVisible} onRequestClose={botonCerrarPresupuesto}>
-        
-        <View style={styles.modalContenedor}>
-
-          <View style={styles.modalVista}>
-
-            <Text style={styles.modalTitulo}>Definir Presupuesto</Text>
-
-            <TextInput style={styles.modalInput} placeholder="Monto del presupuesto (Ej: $5000)" placeholderTextColor="#888" keyboardType="numeric" value={montoPresupuesto} onChangeText={setMontoPresupuesto}/>
-
-            <View style={styles.modalBotones}>
-
-              <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={botonCerrarPresupuesto}>
-                <Text style={styles.botonCancelarTexto}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={botonGuardarPresupuesto}>
-                <Text style={styles.botonGuardarTexto}>Guardar</Text>
-              </TouchableOpacity>
-
-            </View>
-
-          </View>
-
-        </View>
-
-        </Modal>
-        {/*Modal Notificaciones */}
-        <Modal
-        animationType="slide"
-        transparent={true}
-        visible={notificacionesVisible}
-        onRequestClose={() => setNotificacionesVisible(false)}
-        >
+        <Modal animationType="slide" transparent={true} visible={notificacionesVisible} onRequestClose={() => setNotificacionesVisible(false)} >
             <View style={styles.modalContenedor}>
                 <View style={styles.modalVista}>
                     <Text style={styles.modalTitulo}>Notificaciones</Text>
-                    {/* Notificación precargada */}
-                        <View style={styles.notificacionItem}>
-                            <Ionicons name="notifications-outline" size={22} color="#000" style={{ marginRight: 8 }} />
-                            <Text style={styles.notificacionTexto}> Bienvenido a Ahorra+, tu app de finanzas personales.</Text>
-                        </View>
-                    <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={() => setNotificacionesVisible(false)}>
-                        <Text style={styles.cerrarTexto}>Cerrar</Text>
-                    </TouchableOpacity>
+                        
+                    <ScrollView style={{maxHeight: 300, width: '100%'}}>
+                        {listaNotificaciones.length === 0 ? (
+                        <Text style={{textAlign:'center', color:'#777'}}>No tienes notificaciones nuevas.</Text>
+                        ) : (
+                        listaNotificaciones.map((notif, index) => (
+                                <View key={index} style={styles.notificacionItem}>
+                                        <Ionicons name="notifications-outline" size={22} color="#EF4444" style={{ marginRight: 8 }} />
+                                    <View style={{flex:1}}>
+                                        <Text style={styles.notificacionTexto}>{notif.text}</Text>
+                                        <Text style={{fontSize: 10, color:'#999'}}>{notif.date}</Text>
+                                    </View>
+                                </View>
+                            ))
+                        )}
+                    </ScrollView>
+
+                    {listaNotificaciones.length > 0 && (
+                        <TouchableOpacity onPress={limpiarNotificaciones} style={{marginTop: 10, marginBottom: 10}}>
+                            <Text style={{color: 'red', fontWeight:'bold'}}>Borrar todas</Text>
+                        </TouchableOpacity>
+                    )}
+
+                        <TouchableOpacity style={[styles.botonBase, styles.botonCancelar]} onPress={() => setNotificacionesVisible(false)}>
+                            <Text style={styles.cerrarTexto}>Cerrar</Text>
+                        </TouchableOpacity>
                 </View>
             </View>
         </Modal>
@@ -306,7 +274,6 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                 </TouchableOpacity>
 
-                {/* Botón "ver todo" */}
                 <View style={{ alignItems: 'flex-end', marginTop: 8, marginBottom: 20 }}>
                 <TouchableOpacity onPress={() => navigation.navigate('Presupuestos')}>
                     <Text style={styles.verTrans}>Ver todo</Text>
@@ -660,5 +627,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
+    badge: {
+        position: 'absolute',
+        right: -2,
+        top: -2,
+        backgroundColor: 'red',
+        width: 10,
+        height: 10, 
+        borderRadius: 5,
+    }
 
 });

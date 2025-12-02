@@ -168,39 +168,6 @@ class DatabaseService {
         }
     }
 
-    async setBudget(userId, monto, mes, descripcion) {
-        const existing = await this.db.getFirstAsync(
-            'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
-            userId, mes
-        );
-
-        if (existing) {
-            await this.db.runAsync(
-                'UPDATE presupuestos SET monto = ?, descripcion = ? WHERE id = ?',
-                monto, descripcion, existing.id
-            );
-            return { id: existing.id, user_id: userId, monto, mes, descripcion };
-        } else {
-            const result = await this.db.runAsync(
-                'INSERT INTO presupuestos (user_id, monto, mes, descripcion) VALUES (?, ?, ?, ?)',
-                userId, monto, mes, descripcion
-            );
-            return { id: result.lastInsertRowId, user_id: userId, monto, mes, descripcion};
-        }
-    }
-
-    async getBudget(userId, mes) {
-        return await this.db.getFirstAsync(
-            'SELECT *FROM presupuestos WHERE user_id = ? AND mes = ?',
-            userId, mes 
-        );
-    }
-
-    async deleteBudget(id) {
-        const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', id);
-        return result.changes > 0;
-    }
-
     async getFechaTransacciones(userId, fechaInicio, fechaFin) {
         return await this.db.getAllAsync(
           `SELECT * FROM transacciones 
@@ -209,6 +176,47 @@ class DatabaseService {
           userId, fechaInicio, fechaFin
         );
     }
+
+    // Seccion de Presupuestos
+
+    async addBudget(userId, monto, mes, descripcion) {
+        const result = await this.db.runAsync(
+            'INSERT INTO presupuestos (user_id, monto, mes, descripcion) VALUES (?, ?, ?, ?)',
+            userId, monto, mes, descripcion
+        );
+        return { id: result.lastInsertRowId, user_id: userId, monto, mes, descripcion };
+    }
+
+    async updateBudget(id, monto, mes, descripcion) {
+        const result = await this.db.runAsync(
+            'UPDATE presupuestos SET monto = ?, mes = ?, descripcion = ? WHERE id = ?',
+            monto, mes, descripcion, id
+        );
+        return result.changes > 0;
+    }
+
+    // Obtener todos los presupuestos (para la lista)
+    async getAllBudgets(userId, mes) {
+        return await this.db.getAllAsync(
+            'SELECT * FROM presupuestos WHERE user_id = ? ORDER BY mes DESC',
+            userId, mes
+        );
+    }
+
+    // Obtener un solo presupuesto (para validaciones o edición específica)
+    async getBudget(userId, mes) {
+        return await this.db.getFirstAsync(
+            'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
+            userId, mes 
+        );
+    }
+
+    // Eliminar presupuesto
+    async deleteBudget(id) {
+        const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', id);
+        return result.changes > 0;
+    }
+
 }
 
 export default new DatabaseService();

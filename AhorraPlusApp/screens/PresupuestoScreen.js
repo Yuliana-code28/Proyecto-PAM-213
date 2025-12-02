@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BudgetController from '../controllers/BudgetController';
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const filtro = require('../assets/imagen/filtrar.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
@@ -31,61 +33,56 @@ export default function PresupuestoScreen() {
       const user = await UserController.getLoggedUser();
       if (user) {
         setUserId(user.id);
-        fetchRecentBudgets(user.id);
+        fetchBudgets(user.id);
       }
     };
     loadUser();
 
     const listener = async () => {
         const user = await UserController.getLoggedUser();
-        if(user) fetchRecentBudgets(user.id);
+        if(user) fetchBudgets(user.id);
     };
     
     BudgetController.addListener(listener);
     TransactionController.addListener(listener);
-    
     return () => {
         BudgetController.removeListener(listener);
         TransactionController.removeListener(listener);
     };
   }, []);
 
-  const fetchRecentBudgets = async (id) => {
+  const fetchBudgets = async (id) => {
     setLoading(true);
-    const listaPresupuestos = [];
-    const date = new Date();
-    
+    const allBudgets = await BudgetController.getAll(id);
     const allTransactions = await TransactionController.getAll(id);
 
-    for (let i = -1; i < 6; i++) {
-        const d = new Date(date.getFullYear(), date.getMonth() - i, 1);
-        const mesStr = d.toISOString().slice(0, 7);
-        const b = await BudgetController.getBudget(id, mesStr);
+    const budgetsWithProgress = allBudgets.map(b => {
+        const gastado = allTransactions
+            .filter(t => 
+                t.tipo === 'gasto' && 
+                t.fecha.startsWith(b.mes) && 
+                t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === ''
+            )
+            .reduce((sum, t) => sum + t.monto, 0);
         
-        if (b) {
-            const gastadoMes = allTransactions
-                .filter(t => t.tipo === 'gasto' && t.fecha.startsWith(mesStr))
-                .reduce((sum, t) => sum + t.monto, 0);
-            listaPresupuestos.push({ ...b, gastado: gastadoMes });
-        }
-    }
-    setBudgets(listaPresupuestos);
+        return { ...b, gastado };
+    });
+
+    setBudgets(budgetsWithProgress);
     setLoading(false);
   };
 
   const handleSave = async () => {
-    if (!inputMes || !inputMonto) return Alert.alert("Error", "Completa mes y monto");
-    const regexMes = /^\d{4}-\d{2}$/;
-    if (!regexMes.test(inputMes)) return Alert.alert("Error", "Formato YYYY-MM inválido");
+    if (!inputMes || !inputMonto || !inputDescripcion) return Alert.alert("Error", "Completa todos los campos");
     if (!userId) return;
 
-    const result = await BudgetController.saveBudget(userId, inputMonto, inputMes, inputDescripcion);
+    const result = await BudgetController.saveBudget(userId, inputMonto, inputMes, inputDescripcion, isEditing ? currentId : null);
 
     if (result.success) {
       Alert.alert("Éxito", "Presupuesto guardado.");
       setModalVisible(false);
       resetFields();
-      fetchRecentBudgets(userId);
+      fetchBudgets(userId);
     } else {
       Alert.alert("Error", result.error);
     }
@@ -96,9 +93,36 @@ export default function PresupuestoScreen() {
           { text: "Cancelar", style: "cancel" },
           { text: "Eliminar", style: "destructive", onPress: async () => {
               await BudgetController.deleteBudget(id);
-              fetchRecentBudgets(userId);
+              fetchBudgets(userId);
           }}
       ]);
+  }
+
+  const sendNotificationToDashboard = async (message) => {
+      try {
+          const current = await AsyncStorage.getItem('user_notifications');
+          const parsed = current ? JSON.parse(current) : [];
+          const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
+          const updated = [newNotif, ...parsed];
+          await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
+      } catch (e) {
+          console.error("Error guardando notificación", e);
+      }
+  };
+
+  const openNew = async () => {
+      if (budgets.length >= 4) {
+          Alert.alert("Límite Alcanzado", "Solo puedes tener máximo 4 presupuestos. Se ha enviado una notificación a tu Dashboard.");
+          await sendNotificationToDashboard("Has alcanzado el límite de 4 presupuestos activos.");
+          return;
+      }
+
+      setIsEditing(false);
+      setCurrentId(null);
+      setInputMes(getCurrentMonth());
+      setMonto('');
+      setInputDescripcion('');
+      setModalVisible(true);
   }
 
   const openEdit = (b) => {
@@ -110,16 +134,8 @@ export default function PresupuestoScreen() {
       setModalVisible(true);
   }
 
-  const openNew = () => {
-      setIsEditing(false);
-      setInputMes(getCurrentMonth());
-      setMonto('');
-      setInputDescripcion('');
-      setModalVisible(true);
-  }
-
   const resetFields = () => {
-    setInputMes(''); setMonto(''); setInputDescripcion('');
+    setInputMes(''); setMonto(''); setInputDescripcion(''); setIsEditing(false); setCurrentId(null);
   };
 
   const getBarColor = (p) => p >= 100 ? '#EF4444' : p >= 75 ? '#F59E0B' : '#22C55E';
@@ -133,7 +149,7 @@ export default function PresupuestoScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContenido}>
         <View style={styles.infoContainer}>
-            <Text style={styles.subtitulo}>Administra tus límites mensuales</Text>
+            <Text style={styles.subtitulo}>Administra tus límites (Máx 4)</Text>
         </View>
 
         <View style={styles.contenedorDeTodasLasTransaccione}>
@@ -148,42 +164,39 @@ export default function PresupuestoScreen() {
                 
                 return (
                   <View key={index} style={styles.conendorTransaccion}>
-
-                    <View style={styles.filaSuperior}>
-                        <View style={styles.iconoContenedor}>
-                          <Image source={iconoMeta} style={styles.imagenRestaurante} />
-                        </View>
-                        
-                        <View style={{flex: 1, marginLeft: 15}}>
-                            <Text style={styles.textoTransaccion}>
-                                {b.descripcion ? b.descripcion : "Presupuesto"}
-                            </Text>
-                            <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
-                        </View>
-                        
-                        <Text style={[styles.dineroComida, styles.dineroSalario]}>
-                          ${b.monto}
-                        </Text>
+                    
+                    <View style={styles.iconoContenedor}>
+                      <Image source={iconoMeta} style={styles.imagenRestaurante} />
                     </View>
+                    
+                    <Text style={styles.textoTransaccion}>
+                        {b.descripcion}
+                    </Text>
+                    <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
+                    
+                    <Text style={[styles.dineroComida, styles.dineroSalario]}>
+                      ${b.monto}
+                    </Text>
 
-                    <View style={styles.progressContainer}>
-                        <View style={styles.progressTextRow}>
-                            <Text style={styles.progressText}>Gastado: ${b.gastado.toFixed(0)}</Text>
-                            <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
+                    <View style={styles.bottomContainer}>
+                        <View style={styles.progressWrapper}>
+                            <View style={styles.progressTextRow}>
+                                <Text style={styles.progressText}>Gastado: ${b.gastado.toFixed(0)}</Text>
+                                <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
+                            </View>
+                            <View style={styles.barBackground}>
+                                <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
+                            </View>
                         </View>
-                        <View style={styles.barBackground}>
-                            <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
-                        </View>
-                    </View>
 
-                    <View style={styles.botonesAccionContainer}>
-                        <TouchableOpacity style={styles.botonEditarItem} onPress={() => openEdit(b)}>
-                            <Text style={styles.textoBotonAccion}>Editar</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity style={styles.botonEliminarItem} onPress={() => handleDelete(b.id)}>
-                            <Text style={styles.textoBotonAccion}>Eliminar</Text>
-                        </TouchableOpacity>
+                        <View style={styles.actions}>
+                            <TouchableOpacity onPress={() => openEdit(b)} style={{marginRight: 10}}>
+                                <Ionicons name="pencil" size={18} color="#555" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDelete(b.id)}>
+                                <Ionicons name="trash" size={18} color="#EF4444" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                   </View>
@@ -199,9 +212,9 @@ export default function PresupuestoScreen() {
             <Text style={styles.editarTransaccion}>{isEditing ? "Editar" : "Nuevo"} Presupuesto</Text>
             
             <Text style={styles.labelInput}>Mes (YYYY-MM)</Text>
-            <TextInput style={styles.input} placeholder="2025-11" placeholderTextColor="#888" value={inputMes} onChangeText={setInputMes} editable={!isEditing}/>
+            <TextInput style={styles.input} placeholder="2025-12" placeholderTextColor="#888" value={inputMes} onChangeText={setInputMes}/>
             
-            <Text style={styles.labelInput}>Descripción</Text>
+            <Text style={styles.labelInput}>Categoría (Descripción)</Text>
             <TextInput style={styles.input} placeholder="Ej: Comida" placeholderTextColor="#888" value={inputDescripcion} onChangeText={setInputDescripcion} />
             
             <Text style={styles.labelInput}>Monto Límite</Text>

@@ -6,21 +6,35 @@ export class BudgetController {
         this.listeners = [];
     }
 
-    async saveBudget(userId, monto, mes, descripcion) {
+    async saveBudget(userId, monto, mes, descripcion, id = null) {
         try {
             Budget.validar(monto);
-            const budgetRaw = await DatabaseService.setBudget(userId, parseFloat(monto), mes, descripcion);
+
+            if (id) {
+                await DatabaseService.updateBudget(id, parseFloat(monto), mes, descripcion);
+            } else {
+                await DatabaseService.addBudget(userId, parseFloat(monto), mes, descripcion);
+            }
+
             this.notifyListeners();
-            return { 
-                success: true, 
-                budget: new Budget(budgetRaw.id, userId, budgetRaw.monto, mes, budgetRaw.descripcion) };
+            return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }
     }
 
-    async getBudget(userId, mes) {
+    async getAll(userId) {
         try {
+            const data = await DatabaseService.getAllBudgets(userId, mes);
+            return data.map(b => new Budget(b.id, b.user_id, b.monto, b.mes, b.descripcion));
+        } catch (error) {
+            console.error("Error al obtener presupuesto: ", error);
+            return[];
+        }
+    }
+
+    async getBudget(userId, mes) {
+        try { 
             const budgetRaw = await DatabaseService.getBudget(userId, mes);
             if (budgetRaw) {
                 return new Budget(budgetRaw.id, budgetRaw.user_id, budgetRaw.monto, budgetRaw.mes, budgetRaw.descripcion);
