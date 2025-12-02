@@ -6,12 +6,10 @@ export default function LoginScreen({navigation}) {
     const { login } = useAuth();     
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña]= useState(''); 
-    const [terminos, setTerminos] = useState(false); 
     const [recordar, setRecordar] = useState(false);
 
     const handleLogin = async () => {
         if (!correo || !contraseña) return Alert.alert('Error', 'Ingresa credenciales');
-        if (!terminos) return Alert.alert('Atención', 'Acepta términos');
 
         const resultado = await login(correo, contraseña, recordar);
 
@@ -46,11 +44,6 @@ export default function LoginScreen({navigation}) {
             value={contraseña}
             onChangeText={setContraseña} >
           </TextInput>
-
-          <View style={styles.switchStyle}>
-            <Text style={styles.switchText}>Aceptar términos y condiciones </Text>
-            <Switch value={terminos} onValueChange={() => setTerminos(!terminos)} trackColor={{ false: "#767577", true: "#d8c242ff" }} />
-          </View>
 
           <View style={styles.switchStyle}>
             <Text style={styles.switchText}>Recordar sesión </Text>
