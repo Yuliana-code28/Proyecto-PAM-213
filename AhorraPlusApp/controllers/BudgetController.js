@@ -11,9 +11,10 @@ export class BudgetController {
             Budget.validar(monto);
 
             if (id) {
-                await DatabaseService.updateBudget(id, parseFloat(monto), mes, descripcion);
+               
+                await DatabaseService.updateBudget(id, parseFloat(monto), mes, descripcion, descripcion);
             } else {
-                await DatabaseService.addBudget(userId, parseFloat(monto), mes, descripcion);
+                await DatabaseService.addBudget(userId, parseFloat(monto), mes, descripcion, descripcion);
             }
 
             this.notifyListeners();

@@ -127,8 +127,7 @@ export default function PantallaGraficas({ navigation }) {
                 }}
                 accessor={"monto"}
                 backgroundColor={"transparent"}
-                paddingLeft={"15"}
-                center={[10, 0]}
+                paddingLeft={"80"}
                 hasLegend={false}
             />
           ) : (

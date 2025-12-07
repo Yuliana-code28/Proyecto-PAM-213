@@ -6,12 +6,13 @@ class DatabaseService {
     }
 
     async initialize() {
+        if (this.db) return;
         this.db = await SQLite.openDatabaseAsync('ahorraplus.db')
 
         await this.db.execAsync(`
             PRAGMA foreign_keys = ON;
 
-            DROP TABLE IF EXISTS presupuestos;
+       
 
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,25 +39,36 @@ class DatabaseService {
                 user_id INTEGER NOT NULL,
                 monto REAL NOT NULL,
                 mes TEXT NOT NULL,
+                categoria TEXT NOT NULL,
                 descripcion TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
-
         `);
-        
+
+        try {
+            const tableInfo = await this.db.getAllAsync("PRAGMA table_info(presupuestos)");
+            const hasCategory = tableInfo.some(col => col.name === 'categoria');
+
+            if (!hasCategory) {
+                await this.db.execAsync("ALTER TABLE presupuestos ADD COLUMN categoria TEXT NOT NULL DEFAULT 'General'");
+                console.log("Migración: Se agregó la columna 'categoria' a la tabla 'presupuestos'.");
+            }
+        } catch (error) {
+            console.error("Error de migración:", error);
+        }
+
         console.log('Base de datos SQLIte inicializada');
-    
+
     }
 
-    
 
     async registerUser(nombre, correo, telefono, password) {
         try {
             const result = await this.db.runAsync(
                 'INSERT INTO users (nombre, correo, telefono, password) VALUES (?, ?, ?, ?)',
-                nombre, correo, telefono, password
+                [nombre, correo, telefono, password]
             );
-            return {id: result.lastInsertRowId, nombre, correo, fecha_creacion: new Date().toISOString() };
+            return { id: result.lastInsertRowId, nombre, correo, fecha_creacion: new Date().toISOString() };
         } catch (error) {
             throw new Error("Error al registrar usuario: " + error.message);
         }
@@ -65,14 +77,14 @@ class DatabaseService {
     async loginUser(correo, password) {
         return await this.db.getFirstAsync(
             'SELECT * FROM users WHERE correo = ? AND password = ?',
-            correo,password
+            [correo, password]
         );
     }
 
     async updatePassword(correo, newPassword) {
         const result = await this.db.runAsync(
             'UPDATE users SET password = ? WHERE correo = ?',
-            newPassword, correo
+            [newPassword, correo]
         );
         return result.changes > 0;
     }
@@ -80,7 +92,7 @@ class DatabaseService {
     async getUserById(id) {
         return await this.db.getFirstAsync(
             'SELECT * FROM users WHERE id = ?',
-            id
+            [id]
         );
     }
 
@@ -88,7 +100,7 @@ class DatabaseService {
         try {
             const result = await this.db.runAsync(
                 'UPDATE users SET nombre = ? WHERE id = ?',
-                nombre, id
+                [nombre, id]
             );
             return result.changes > 0;
         } catch (error) {
@@ -100,7 +112,7 @@ class DatabaseService {
         try {
             const result = await this.db.runAsync(
                 'UPDATE users SET password = ? WHERE id = ?',
-                password, id
+                [password, id]
             );
             return result.changes > 0;
         } catch (error) {
@@ -112,22 +124,22 @@ class DatabaseService {
         try {
             const result = await this.db.runAsync(
                 'UPDATE users SET nombre = ?, password = ? WHERE id = ? ',
-                nombre, password, id
+                [nombre, password, id]
             );
             return result.changes > 0;
-        } catch (error){
+        } catch (error) {
             throw new Error("Error al actualizar usuario: " + error.message);
         }
     }
 
-    // Seccion de Transacciones
+
 
     async addTransaction(userId, monto, categoria, descripcion, tipo, fecha) {
         const result = await this.db.runAsync(
             'INSERT INTO transacciones (user_id, monto, categoria, descripcion, tipo, fecha) VALUES (?, ?, ?, ?, ?, ?)',
-            userId, monto, categoria, descripcion, tipo, fecha
+            [userId, monto, categoria, descripcion, tipo, fecha]
         );
-        return{
+        return {
             id: result.lastInsertRowId,
             user_id: userId,
             monto,
@@ -140,13 +152,13 @@ class DatabaseService {
 
     async getTransactions(userId) {
         return await this.db.getAllAsync(
-            'SELECT * FROM transacciones WHERE user_id = ? ORDER BY fecha DESC', // Filtra por userId
-            userId
+            'SELECT * FROM transacciones WHERE user_id = ? ORDER BY fecha DESC',
+            [userId]
         );
     }
 
     async deleteTransaction(id) {
-        const result = await this.db.runAsync('DELETE FROM transacciones WHERE id = ?', id);
+        const result = await this.db.runAsync('DELETE FROM transacciones WHERE id = ?', [id]);
         return result.changes > 0;
     }
 
@@ -156,11 +168,11 @@ class DatabaseService {
                 `UPDATE transacciones 
                  SET monto = ?, categoria = ?, descripcion = ?, tipo = ?, fecha = ?
                  WHERE id = ?`,
-                monto, categoria, descripcion, tipo, fecha, id
+                [monto, categoria, descripcion, tipo, fecha, id]
             );
-    
+
             console.log("Transacción actualizada:", result);
-    
+
             return result.changes > 0;
         } catch (error) {
             console.error("Error al actualizar transacción:", error);
@@ -170,51 +182,60 @@ class DatabaseService {
 
     async getFechaTransacciones(userId, fechaInicio, fechaFin) {
         return await this.db.getAllAsync(
-          `SELECT * FROM transacciones 
+            `SELECT * FROM transacciones 
            WHERE user_id = ? AND fecha BETWEEN ? AND ?
            ORDER BY fecha DESC`,
-          userId, fechaInicio, fechaFin
+            [userId, fechaInicio, fechaFin]
         );
     }
 
-    // Seccion de Presupuestos
 
-    async addBudget(userId, monto, mes, descripcion) {
+
+    async addBudget(userId, monto, mes, categoria, descripcion) {
         const result = await this.db.runAsync(
-            'INSERT INTO presupuestos (user_id, monto, mes, descripcion) VALUES (?, ?, ?, ?)',
-            userId, monto, mes, descripcion
+            'INSERT INTO presupuestos (user_id, monto, mes, categoria, descripcion) VALUES (?, ?, ?, ?, ?)',
+            [userId, monto, mes, categoria, descripcion]
         );
-        return { id: result.lastInsertRowId, user_id: userId, monto, mes, descripcion };
+        return { id: result.lastInsertRowId, user_id: userId, monto, mes, categoria, descripcion };
     }
 
-    async updateBudget(id, monto, mes, descripcion) {
+    async updateBudget(id, monto, mes, categoria, descripcion) {
         const result = await this.db.runAsync(
-            'UPDATE presupuestos SET monto = ?, mes = ?, descripcion = ? WHERE id = ?',
-            monto, mes, descripcion, id
+            'UPDATE presupuestos SET monto = ?, mes = ?, categoria = ?, descripcion = ? WHERE id = ?',
+            [monto, mes, categoria, descripcion, id]
         );
         return result.changes > 0;
     }
 
-    // Obtener todos los presupuestos (para la lista)
+
     async getAllBudgets(userId) {
         return await this.db.getAllAsync(
             'SELECT * FROM presupuestos WHERE user_id = ? ORDER BY mes DESC',
-            userId
+            [userId]
         );
     }
-    
 
-    // Obtener un solo presupuesto (para validaciones o edición específica)
+
+
     async getBudget(userId, mes) {
         return await this.db.getFirstAsync(
             'SELECT * FROM presupuestos WHERE user_id = ? AND mes = ?',
-            userId, mes 
+            [userId, mes]
         );
     }
 
-    // Eliminar presupuesto
+    async getBudgetByCategory(userId, mes, category) {
+        return await this.db.getFirstAsync(
+            `SELECT * FROM presupuestos 
+             WHERE user_id = ? AND mes = ? 
+             AND LOWER(TRIM(categoria)) = LOWER(TRIM(?))`,
+            [userId, mes, category]
+        );
+    }
+
+
     async deleteBudget(id) {
-        const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', id);
+        const result = await this.db.runAsync('DELETE FROM presupuestos WHERE id = ?', [id]);
         return result.changes > 0;
     }
 

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BudgetController from '../controllers/BudgetController';
@@ -12,7 +13,7 @@ const iconoMeta = require('../assets/imagen/meta.jpg');
 export default function PresupuestoScreen() {
   const [budgets, setBudgets] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  
+
   const [inputMes, setInputMes] = useState('');
   const [inputMonto, setMonto] = useState('');
   const [inputDescripcion, setInputDescripcion] = useState('');
@@ -27,28 +28,30 @@ export default function PresupuestoScreen() {
     return now.toISOString().slice(0, 7);
   };
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const user = await UserController.getLoggedUser();
-      if (user) {
-        setUserId(user.id);
-        fetchBudgets(user.id);
-      }
-    };
-    loadUser();
+  useFocusEffect(
+    useCallback(() => {
+        let isActive = true;
 
-    const listener = async () => {
-        const user = await UserController.getLoggedUser();
-        if(user) fetchBudgets(user.id);
-    };
-    
-    BudgetController.addListener(listener);
-    TransactionController.addListener(listener);
-    return () => {
-        BudgetController.removeListener(listener);
-        TransactionController.removeListener(listener);
-    };
-  }, []);
+        const loadData = async () => {
+            await new Promise(resolve => setTimeout(resolve, 150)); // Espera AsyncStorage
+
+            const user = await UserController.getLoggedUser();
+
+            if (user && isActive) {
+                setUserId(user.id);
+                fetchBudgets(user.id);
+            }
+        };
+
+        loadData();
+        return () => { isActive = false; };
+    }, [])
+);
+
+useEffect(() => {
+  if (!userId) return;
+  fetchBudgets(userId);
+}, [userId]);
 
   const fetchBudgets = async (id) => {
     setLoading(true);
@@ -56,15 +59,15 @@ export default function PresupuestoScreen() {
     const allTransactions = await TransactionController.getAll(id);
 
     const budgetsWithProgress = allBudgets.map(b => {
-        const gastado = allTransactions
-            .filter(t => 
-                t.tipo === 'gasto' && 
-                t.fecha.startsWith(b.mes) && 
-                (t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === '')
-            )
-            .reduce((sum, t) => sum + t.monto, 0);
-        
-        return { ...b, gastado };
+      const gastado = allTransactions
+        .filter(t =>
+          t.tipo === 'gasto' &&
+          t.fecha.startsWith(b.mes) &&
+          (t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === '')
+        )
+        .reduce((sum, t) => sum + t.monto, 0);
+
+      return { ...b, gastado };
     });
 
     setBudgets(budgetsWithProgress);
@@ -88,49 +91,51 @@ export default function PresupuestoScreen() {
   };
 
   const handleDelete = (id) => {
-      Alert.alert("Eliminar", "¿Borrar este presupuesto?", [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Eliminar", style: "destructive", onPress: async () => {
-              await BudgetController.deleteBudget(id);
-              fetchBudgets(userId);
-          }}
-      ]);
+    Alert.alert("Eliminar", "¿Borrar este presupuesto?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar", style: "destructive", onPress: async () => {
+          await BudgetController.deleteBudget(id);
+          fetchBudgets(userId);
+        }
+      }
+    ]);
   }
 
   const sendNotificationToDashboard = async (message) => {
-      try {
-          const current = await AsyncStorage.getItem('user_notifications');
-          const parsed = current ? JSON.parse(current) : [];
-          const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
-          const updated = [newNotif, ...parsed];
-          await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
-      } catch (e) {
-          console.error("Error guardando notificación", e);
-      }
+    try {
+      const current = await AsyncStorage.getItem('user_notifications');
+      const parsed = current ? JSON.parse(current) : [];
+      const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
+      const updated = [newNotif, ...parsed];
+      await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.error("Error guardando notificación", e);
+    }
   };
 
   const openNew = async () => {
-      if (budgets.length >= 4) {
-          Alert.alert("Límite Alcanzado", "Solo puedes tener máximo 4 presupuestos. Se ha enviado una notificación a tu Dashboard.");
-          await sendNotificationToDashboard("Has alcanzado el límite de 4 presupuestos activos.");
-          return;
-      }
+    if (budgets.length >= 4) {
+      Alert.alert("Límite Alcanzado", "Solo puedes tener máximo 4 presupuestos. Se ha enviado una notificación a tu Dashboard.");
+      await sendNotificationToDashboard("Has alcanzado el límite de 4 presupuestos activos.");
+      return;
+    }
 
-      setIsEditing(false);
-      setCurrentId(null);
-      setInputMes(getCurrentMonth());
-      setMonto('');
-      setInputDescripcion('');
-      setModalVisible(true);
+    setIsEditing(false);
+    setCurrentId(null);
+    setInputMes(getCurrentMonth());
+    setMonto('');
+    setInputDescripcion('');
+    setModalVisible(true);
   }
 
   const openEdit = (b) => {
-      setIsEditing(true);
-      setCurrentId(b.id);
-      setInputMes(b.mes);
-      setMonto(b.monto.toString());
-      setInputDescripcion(b.descripcion);
-      setModalVisible(true);
+    setIsEditing(true);
+    setCurrentId(b.id);
+    setInputMes(b.mes);
+    setMonto(b.monto.toString());
+    setInputDescripcion(b.descripcion);
+    setModalVisible(true);
   }
 
   const resetFields = () => {
@@ -141,66 +146,71 @@ export default function PresupuestoScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.conetenedorEncabezado}>
+      <View style={styles.contenedorEncabezado}>
         <Text style={styles.titulo}>Presupuestos</Text>
         <Image source={filtro} style={styles.imagenFiltro} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContenido}>
         <View style={styles.infoContainer}>
-            <Text style={styles.subtitulo}>Administra tus límites (Máx 4)</Text>
+          <Text style={styles.subtitulo}>Administra tus límites (Máx 4)</Text>
         </View>
 
-        <View style={styles.contenedorDeTodasLasTransaccione}>
+        <View style={styles.contenedorDeTodasLasTransacciones}>
           {budgets.length === 0 ? (
-            <Text style={{textAlign: "center", marginTop: 20, color: "#555"}}>
-                {loading ? "Cargando..." : "No hay presupuestos."}
+            <Text style={{ textAlign: "center", marginTop: 20, color: "#555" }}>
+              {loading ? "Cargando..." : "No hay presupuestos."}
             </Text>
           ) : (
             budgets.map((b, index) => {
-                const porcentaje = Math.min((b.gastado / b.monto) * 100, 100);
-                const color = getBarColor(porcentaje);
-                
-                return (
-                  <View key={index} style={styles.conendorTransaccion}>
-                    
-                    <View style={styles.filaSuperior}>
-                        <View style={styles.iconoContenedor}>
-                        <Image source={iconoMeta} style={styles.imagenRestaurante} />
-                        </View>
-                        
-                        <View style={{flex:1, marginLeft: 15}}>
-                            <Text style={styles.textoTransaccion}>{b.descripcion}</Text>
-                            <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
-                        </View>
+              const porcentaje = Math.min((b.gastado / b.monto) * 100, 100);
+              const color = getBarColor(porcentaje);
 
-                        <Text style={[styles.dineroComida, styles.dineroSalario]}>
-                        ${b.monto}
-                        </Text>
+              return (
+                <View key={index} style={styles.contenedorTransaccion}>
+
+                  <View style={styles.filaSuperior}>
+                    <View style={styles.iconoContenedor}>
+                      <Image source={iconoMeta} style={styles.imagenRestaurante} />
                     </View>
 
-                    <View style={styles.progressContainer}>
-                        <View style={styles.progressTextRow}>
-                            <Text style={styles.progressText}>Gastado: ${b.gastado.toFixed(0)}</Text>
-                            <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
-                        </View>
-                        <View style={styles.barBackground}>
-                            <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
-                        </View>
+                    <View style={{ flex: 1, marginLeft: 15 }}>
+                      <Text style={styles.textoTransaccion}>{b.descripcion}</Text>
+                      <Text style={styles.textoTransaccionCategoria}>Mes: {b.mes}</Text>
                     </View>
 
-                    {/* --- BOTONES DE TEXTO AQUÍ --- */}
-                    <View style={styles.botonesAccionContainer}>
-                        <TouchableOpacity onPress={() => openEdit(b)} style={styles.botonEditarItem}>
-                            <Text style={styles.textoBotonAccion}>Editar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDelete(b.id)} style={styles.botonEliminarItem}>
-                            <Text style={styles.textoBotonAccion}>Eliminar</Text>
-                        </TouchableOpacity>
-                    </View>
-
+                    <Text style={[styles.dineroComida, styles.dineroSalario]}>
+                      ${b.monto}
+                    </Text>
                   </View>
-                );
+
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressTextRow}>
+                      <Text style={[
+                        styles.progressText,
+                        (b.monto - b.gastado) < 0 && { color: 'red', fontWeight: 'bold' }
+                      ]}>
+                        {(b.monto - b.gastado) >= 0 ? 'Restante:' : 'Excedido:'} ${(b.monto - b.gastado).toFixed(0)}
+                      </Text>
+                      <Text style={styles.progressText}>{porcentaje.toFixed(0)}%</Text>
+                    </View>
+                    <View style={styles.barBackground}>
+                      <View style={[styles.barFill, { width: `${porcentaje}%`, backgroundColor: color }]} />
+                    </View>
+                  </View>
+
+                  {/* --- BOTONES DE TEXTO AQUÍ --- */}
+                  <View style={styles.botonesAccionContainer}>
+                    <TouchableOpacity onPress={() => openEdit(b)} style={styles.botonEditarItem}>
+                      <Text style={styles.textoBotonAccion}>Editar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDelete(b.id)} style={styles.botonEliminarItem}>
+                      <Text style={styles.textoBotonAccion}>Eliminar</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                </View>
+              );
             })
           )}
         </View>
@@ -211,13 +221,13 @@ export default function PresupuestoScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContenido}>
             <Text style={styles.editarTransaccion}>{isEditing ? "Editar" : "Nuevo"} Presupuesto</Text>
-            
+
             <Text style={styles.labelInput}>Mes (YYYY-MM)</Text>
-            <TextInput style={styles.input} placeholder="2025-12" placeholderTextColor="#888" value={inputMes} onChangeText={setInputMes}/>
-            
+            <TextInput style={styles.input} placeholder="2025-12" placeholderTextColor="#888" value={inputMes} onChangeText={setInputMes} />
+
             <Text style={styles.labelInput}>Categoría (Descripción)</Text>
             <TextInput style={styles.input} placeholder="Ej: Comida" placeholderTextColor="#888" value={inputDescripcion} onChangeText={setInputDescripcion} />
-            
+
             <Text style={styles.labelInput}>Monto Límite</Text>
             <TextInput style={styles.input} placeholder="Ej: 5000" placeholderTextColor="#888" keyboardType='numeric' value={inputMonto} onChangeText={setMonto} />
 
@@ -242,104 +252,104 @@ export default function PresupuestoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#e5dcb9ff' 
+  container: {
+    flex: 1,
+    backgroundColor: '#e5dcb9ff'
   },
-  titulo: { 
-    marginTop: 35, 
-    fontSize: 25, 
-    fontWeight: "bold", 
-    textAlign: "center" 
+  titulo: {
+    marginTop: 35,
+    fontSize: 25,
+    fontWeight: "bold",
+    textAlign: "center"
   },
-  conetenedorEncabezado: { 
-    backgroundColor: "#ffff", 
-    width: "100%", 
-    height: "10%", 
-    alignItems: "center" 
+  contenedorEncabezado: {
+    backgroundColor: "#ffff",
+    width: "100%",
+    height: "10%",
+    alignItems: "center"
   },
-  imagenFiltro: { 
-    marginTop: 35, 
-    width: 35, 
-    height: 35, 
-    position: "absolute", 
-    right: 10 
+  imagenFiltro: {
+    marginTop: 35,
+    width: 35,
+    height: 35,
+    position: "absolute",
+    right: 10
   },
-  scrollContenido: { 
-    paddingBottom: 40, 
-    flexGrow: 1 
+  scrollContenido: {
+    paddingBottom: 40,
+    flexGrow: 1
   },
-  infoContainer: { 
-    marginTop: 20, 
-    alignItems: 'center' 
+  infoContainer: {
+    marginTop: 20,
+    alignItems: 'center'
   },
-  subtitulo: { 
-    fontSize: 16, 
-    color: "#555", 
-    fontStyle: 'italic' 
+  subtitulo: {
+    fontSize: 16,
+    color: "#555",
+    fontStyle: 'italic'
   },
-  contenedorDeTodasLasTransaccione: { 
-    marginTop: 20, 
-    backgroundColor: "#ffffffff", 
-    marginLeft: 15, 
-    marginRight: 15, 
-    borderRadius: 15, 
-    paddingVertical: 15 
+  contenedorDeTodasLasTransacciones: {
+    marginTop: 20,
+    backgroundColor: "#ffffffff",
+    marginLeft: 15,
+    marginRight: 15,
+    borderRadius: 15,
+    paddingVertical: 15
   },
-  conendorTransaccion: { 
-    marginBottom: 20, 
-    paddingBottom: 15, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#ddd', 
-    paddingHorizontal: 15 
+  contenedorTransaccion: {
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingHorizontal: 15
   },
   filaSuperior: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10
   },
-  imagenRestaurante: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20 
+  imagenRestaurante: {
+    width: 40,
+    height: 40,
+    borderRadius: 20
   },
-  textoTransaccion: { 
-    fontSize: 18, 
+  textoTransaccion: {
+    fontSize: 18,
     fontWeight: "bold",
     color: '#000'
   },
-  textoTransaccionCategoria: { 
-    fontSize: 14, 
-    color: '#555' 
+  textoTransaccionCategoria: {
+    fontSize: 14,
+    color: '#555'
   },
-  dineroComida: { 
-    fontSize: 20, 
-    color: "red" 
+  dineroComida: {
+    fontSize: 20,
+    color: "red"
   },
-  dineroSalario: { 
-    color: "#9ad654ff" 
+  dineroSalario: {
+    color: "#9ad654ff"
   },
   progressContainer: {
     marginVertical: 10
   },
   progressTextRow: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 4
   },
   progressText: {
-    fontSize: 12, 
+    fontSize: 12,
     color: '#777',
     fontWeight: '600'
   },
   barBackground: {
-    height: 8, 
-    backgroundColor: '#eee', 
-    borderRadius: 4, 
+    height: 8,
+    backgroundColor: '#eee',
+    borderRadius: 4,
     overflow: 'hidden'
   },
   barFill: {
-    height: '100%', 
+    height: '100%',
     borderRadius: 4
   },
   botonesAccionContainer: {
@@ -349,7 +359,7 @@ const styles = StyleSheet.create({
     gap: 15
   },
   botonEditarItem: {
-    backgroundColor: '#72b13e', 
+    backgroundColor: '#72b13e',
     flex: 1,
     paddingVertical: 8,
     borderRadius: 20,
@@ -368,99 +378,99 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   // ----------------------------------------
-  modalContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(0,0,0,0.5)' 
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
   },
-  modalContenido: { 
-    backgroundColor: '#fff', 
-    width: '85%', 
-    borderRadius: 15, 
-    padding: 20, 
-    alignItems: 'center', 
-    paddingBottom: 30 
+  modalContenido: {
+    backgroundColor: '#fff',
+    width: '85%',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    paddingBottom: 30
   },
-  editarTransaccion: { 
-    fontSize: 20, 
-    fontWeight: "bold", 
-    marginBottom: 20 
+  editarTransaccion: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20
   },
   labelInput: {
-    alignSelf:'flex-start', 
-    marginLeft: 5, 
-    color: '#555', 
-    fontWeight:'bold', 
-    marginTop: 10 
+    alignSelf: 'flex-start',
+    marginLeft: 5,
+    color: '#555',
+    fontWeight: 'bold',
+    marginTop: 10
   },
-  input: { 
-    borderWidth: 1, 
-    borderColor: "black", 
-    marginTop: 5, 
-    width: "100%", 
-    borderRadius: 5, 
-    padding: 10, 
-    marginBottom: 0 
+  input: {
+    borderWidth: 1,
+    borderColor: "black",
+    marginTop: 5,
+    width: "100%",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 0
   },
-  modalBotones: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    width: '100%', 
-    marginTop: 25 
+  modalBotones: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 25
   },
-  botonBase: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    borderRadius: 8, 
-    alignItems: 'center', 
-    marginHorizontal: 5 
+  botonBase: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5
   },
-  botonGuardar: { 
-    backgroundColor: '#d8c242ff' 
+  botonGuardar: {
+    backgroundColor: '#d8c242ff'
   },
-  botonGuardarTexto: { 
-    color: '#000000ff', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  botonGuardarTexto: {
+    color: '#000000ff',
+    fontWeight: 'bold',
+    fontSize: 16
   },
-  botonCancelar: { 
-    backgroundColor: '#f3f4f6', 
-    borderWidth: 1, 
-    borderColor: '#ccc' 
+  botonCancelar: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#ccc'
   },
-  botonCancelarTexto: { 
-    color: '#333', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  botonCancelarTexto: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 16
   },
-  accionBoton: { 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 16, 
-    paddingVertical: 16, 
-    alignItems: 'center', 
-    width: '22%', 
-    elevation: 4, 
-    position: 'absolute', 
-    bottom: 20, 
-    right: 20 
+  accionBoton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    width: '22%',
+    elevation: 4,
+    position: 'absolute',
+    bottom: 20,
+    right: 20
   },
-  accionTexto: { 
-    fontSize: 12, 
-    color: '#333', 
-    marginTop: 4 
+  accionTexto: {
+    fontSize: 12,
+    color: '#333',
+    marginTop: 4
   },
-  campanaIcono: { 
-    width: 25, 
-    height: 25, 
-    resizeMode: 'contain' 
+  campanaIcono: {
+    width: 25,
+    height: 25,
+    resizeMode: 'contain'
   },
-  iconoContenedor: { 
-    width: 52, 
-    height: 52, 
-    borderRadius: 30, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "#fdecea" 
+  iconoContenedor: {
+    width: 52,
+    height: 52,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fdecea"
   },
 });

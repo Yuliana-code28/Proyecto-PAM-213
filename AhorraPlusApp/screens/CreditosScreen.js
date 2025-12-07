@@ -16,10 +16,10 @@ export default function CreditosScreen({ navigation }) {
     }
 
     const nuevoCredito = {
-      id: Date.now(), // identificador único
+      id: Date.now(), 
       nombre: nombreCredito,
       monto: montoCredito,
-      fecha: new Date().toLocaleDateString(), // fecha actual
+      fecha: new Date().toLocaleDateString(), 
     };
     setCreditos([...creditos, nuevoCredito]);
 
@@ -37,12 +37,12 @@ export default function CreditosScreen({ navigation }) {
             <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
 
-        {/* Título */}
+      
         <View style={styles.header}>
           <Text style={styles.titulo}>Créditos</Text>
         </View>
 
-        {/* Lista transacciones */}
+        
         <View style={styles.transZona}>
           {creditos.length === 0 ? (
           <Text style={styles.mensajeVacio}>Aún no hay créditos</Text>
@@ -65,7 +65,7 @@ export default function CreditosScreen({ navigation }) {
       </View>
 
 
-        {/* Botón agregar */}
+       
         <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
           <Ionicons name="add-circle-outline" size={22} color="#000" />
           <Text style={styles.botonTexto}>Agregar crédito</Text>
@@ -73,7 +73,7 @@ export default function CreditosScreen({ navigation }) {
 
       </ScrollView>
 
-      {/* Modal flotante */}
+     
       <Modal
         animationType="slide"
         transparent={true}

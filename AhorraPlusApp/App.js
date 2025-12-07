@@ -23,12 +23,12 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function GraficasStack() {
-   return (
-      <Stack.Navigator initialRouteName="Graficas" screenOptions={{ headerShown: false }}>
-         <Stack.Screen name="Graficas" component={PantallaGraficas}/>
-         <Stack.Screen name="GraficasIngresos" component={PantallaGraficasIngresos}/>
-      </Stack.Navigator>
-   );
+  return (
+    <Stack.Navigator initialRouteName="Graficas" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Graficas" component={PantallaGraficas} />
+      <Stack.Screen name="GraficasIngresos" component={PantallaGraficasIngresos} />
+    </Stack.Navigator>
+  );
 }
 
 function MainTabs() {
@@ -39,7 +39,7 @@ function MainTabs() {
       tabBarInactiveTintColor: 'gray',
       tabBarIcon: ({ focused, color, size }) => {
         let iconsource;
-        
+
         if (route.name === 'Dashboard') {
           iconsource = require('./assets/imagen/casa.png');
         } else if (route.name === 'Transacciones') {
@@ -56,7 +56,7 @@ function MainTabs() {
         )
       }
     })}>
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />      
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Transacciones" component={TransaccionesScreen} />
       <Tab.Screen name="Presupuestos" component={PresupuestoScreen} />
       <Tab.Screen name="Graficas" component={GraficasStack} />
@@ -66,59 +66,49 @@ function MainTabs() {
 }
 
 const NavigationLayout = () => {
-    const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-    if (isLoading) {
-        return (
-          <View style={styles.splashContainer}>
-              <StatusBar barStyle="light-content" backgroundColor="#202020ff"/>
-              <Image source={require('./assets/imagen/AhorraPlusApp.png')} style={styles.logo}/>
-              <Text style={styles.title}>Ahorra +</Text>
-              <ActivityIndicator size="large" color="#e5dcb9ff" />
-          </View>
-        );
-    }
-
+  if (isLoading) {
     return (
-        <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {user ? (
-                    <>
-                      <Stack.Screen name="MainApp" component={MainTabs} />
-                      <Stack.Screen name="Creditos" component={CreditosScreen} />
-                      <Stack.Screen name="Pagar" component={PagarScreen} />
-                    </>
-                ) : (
-                    <>
-                        <Stack.Screen name="Inicio" component={InicioScreen} />
-                        <Stack.Screen name="Login" component={LoginScreen} />
-                        <Stack.Screen name="Registro" component={RegistroScreen} />
-                        <Stack.Screen name="Restablecer" component={RestablecerScreen} />
-                    </>
-                )}
-            </Stack.Navigator>
-        </NavigationContainer>
+      <View style={styles.splashContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#202020ff" />
+        <Image source={require('./assets/imagen/AhorraPlusApp.png')} style={styles.logo} />
+        <Text style={styles.title}>Ahorra +</Text>
+        <ActivityIndicator size="large" color="#e5dcb9ff" />
+      </View>
     );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <>
+            <Stack.Screen name="MainApp" component={MainTabs} />
+            <Stack.Screen name="Creditos" component={CreditosScreen} />
+            <Stack.Screen name="Pagar" component={PagarScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Inicio" component={InicioScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Registro" component={RegistroScreen} />
+            <Stack.Screen name="Restablecer" component={RestablecerScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 };
 
 
 export default function App() {
 
-  React.useEffect(() => {
-    const init = async () => {
-      try {
-        await DatabaseService.initialize();
-        console.log("BD lista");
-      } catch (error) {
-        console.log("Error inicializando BD:", error);
-      }
-    };
-    init();
-  }, []);
+
   return (
-      <AuthProvider>
-          <NavigationLayout />
-      </AuthProvider>
+    <AuthProvider>
+      <NavigationLayout />
+    </AuthProvider>
   );
 }
 

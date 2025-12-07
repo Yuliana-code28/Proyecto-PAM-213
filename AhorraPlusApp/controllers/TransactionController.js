@@ -30,9 +30,10 @@ export class TransactionController {
 
   async add(userId, monto, categoria, descripcion, tipo, fecha) {
     if (!userId) throw new Error("Usuario no identificado");
+  
     try {
       Transaction.validar(monto, categoria);
-
+  
       const transRaw = await DatabaseService.addTransaction(
         userId,
         parseFloat(monto),
@@ -41,27 +42,40 @@ export class TransactionController {
         tipo,
         fecha
       );
-
+  
       let alertMessage = null;
-
+  
       if (tipo === "gasto") {
         const mesActual = fecha.substring(0, 7);
-        const presupuesto = await DatabaseService.getBudget(userId, mesActual);
-
-        if (presupuesto) {
-          const transacciones = await DatabaseService.getTransactions(userId);
-          const totalGastos = transacciones
-            .filter((t) => t.tipo === "gasto" && t.fecha.startsWith(mesActual))
-            .reduce((sum, t) => sum + t.monto, 0);
-
-          if (totalGastos > presupuesto.monto) {
-            alertMessage = `¡Atención! Has excedido tu presupuesto mensual de $${presupuesto.monto}.`;
-          }
+  
+        // Presupuesto solo de la categoria actual
+        const presupuestoCat = await DatabaseService.getBudgetByCategory(
+          userId,
+          mesActual,
+          categoria
+        );
+  
+        // Obtener todas las transacciones
+        const transacciones = await DatabaseService.getTransactions(userId);
+  
+        // Total gastado SOLO en esta categoria
+        const totalCategoria = transacciones
+          .filter(
+            (t) =>
+              t.tipo === "gasto" &&
+              t.fecha.startsWith(mesActual) &&
+              t.categoria.trim().toLowerCase() === categoria.trim().toLowerCase()
+          )
+          .reduce((sum, t) => sum + t.monto, 0);
+  
+        // ALERTA SOLO SI SE EXCEDE ESTA MISMA CATEGORÍA
+        if (presupuestoCat && totalCategoria > presupuestoCat.monto) {
+          alertMessage = `¡Has excedido el presupuesto de la categoría "${categoria}" ($${presupuestoCat.monto})!`;
         }
       }
-
+  
       this.notifyListeners("added");
-
+  
       return {
         success: true,
         alertMessage,
@@ -80,35 +94,37 @@ export class TransactionController {
       return { success: false, error: error.message };
     }
   }
+  
 
   async updateTransaction(id, userId, monto, categoria, descripcion, tipo, fecha) {
     if (!userId) throw new Error("Usuario no identificado");
-  
+
     try {
-        const result = await DatabaseService.updateTransaction(
-            id,
-            parseFloat(monto), 
-            categoria,         
-            descripcion,       
-            tipo,              
-            fecha              
-        );
-  
-        if (!result) throw new Error("No se pudo actualizar la transacción");
-  
-        this.notifyListeners("updated");
-  
-        return new Transaction(id, userId, monto, categoria, descripcion, tipo, fecha);
+      const result = await DatabaseService.updateTransaction(
+        id,
+        parseFloat(monto),
+        categoria,
+        descripcion,
+        tipo,
+        fecha
+      );
+
+      if (!result) throw new Error("No se pudo actualizar la transacción");
+
+      this.notifyListeners("updated");
+
+      return new Transaction(id, userId, monto, categoria, descripcion, tipo, fecha);
     } catch (error) {
-        console.error("Error al actualizar transacción:", error);
-        return null;
+      console.error("Error al actualizar transacción:", error);
+      return null;
     }
   }
 
   async delete(id, userId) {
     if (!userId) throw new Error("Usuario no identificado");
+
     try {
-      const result = await DatabaseService.deleteTransaction(id, userId);
+      const result = await DatabaseService.deleteTransaction(id);
       this.notifyListeners("deleted");
       return result;
     } catch (error) {
@@ -124,7 +140,7 @@ export class TransactionController {
   addListener(callback) {
     this.listeners.push(callback);
   }
-  
+
   removeListener(callback) {
     this.listeners = this.listeners.filter((l) => l !== callback);
   }

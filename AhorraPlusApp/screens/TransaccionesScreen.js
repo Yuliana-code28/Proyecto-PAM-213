@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, Switch } from 'react-native';
+import {  Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, Switch} from 'react-native';
+
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
-
-
 
 const filtro = require('../assets/imagen/filtrar.png');
 const iconoGasto = require('../assets/imagen/gastos3.png');
@@ -11,6 +10,7 @@ const iconoIngreso = require('../assets/imagen/ingresos2.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
 
 export default function TransaccionesScreen() {
+
   const [transactions, setTransactions] = useState([]);
 
   const [modalVisibleAdd, setModalVisibleAdd] = useState(false);
@@ -31,75 +31,54 @@ export default function TransaccionesScreen() {
 
   const [textoBusqueda, setTextoBusqueda] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
-  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("todas");
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [modalFiltroTipo, setModalFiltroTipo] = useState(false);
 
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [modalFiltroFecha, setModalFiltroFecha] = useState(false);
 
- const validarFechas = (fechaInicio, fechaFin) => {
-  const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const categorias = ["Comida", "Transporte", "Casa", "Entretenimiento", "Salud", "Otros"];
 
-  if (!fechaRegex.test(fechaInicio) || !fechaRegex.test(fechaFin)) return false;
-
-  if (new Date(fechaInicio) > new Date(fechaFin)) return false;
-
-  return true;
-};
-
-  const limpiarFiltros = () => {
-    setFiltroTipo("todos");      
-    setSelectedCategory("todas"); 
-    setTextoBusqueda("");        
-    setFechaInicio("");           
-    setFechaFin("");              
+  const validarFechas = (fi, ff) => {
+    const r = /^\d{4}-\d{2}-\d{2}$/;
+    if (!r.test(fi) || !r.test(ff)) return false;
+    return new Date(fi) <= new Date(ff);
   };
 
-  const categorias = [
-    "Comida",
-    "Transporte",
-    "Casa",
-    "Entretenimiento",
-    "Salud",
-    "Otros",
-  ];
-  
+  const limpiarFiltros = () => {
+    setFiltroTipo("todos");
+    setSelectedCategory("todas");
+    setTextoBusqueda("");
+    setFechaInicio("");
+    setFechaFin("");
+  };
+
   const transaccionesFiltradas = transactions.filter((t) => {
-  
-    
+
     if (filtroTipo !== "todos" && t.tipo.trim() !== filtroTipo) return false;
-  
-  
-    if (selectedCategory !== "todas" &&  t.categoria.trim() !== selectedCategory ) {
+
+    if (selectedCategory !== "todas" && t.categoria.trim() !== selectedCategory)
       return false;
-    }
-  
-    
+
     if (textoBusqueda.trim() !== "") {
-      const texto = textoBusqueda.toLowerCase().trim();
-      const coincideDescripcion = (t.descripcion.trim() || "")
-        .toLowerCase().trim()
-        .includes(texto);
-      const coincideCategoria = (t.categoria.trim() || "")
-        .toLowerCase()
-        .includes(texto);
-  
-      if (!coincideDescripcion && !coincideCategoria) return false;
+      const txt = textoBusqueda.toLowerCase().trim();
+      const desc = (t.descripcion || "").toLowerCase();
+      const cat = (t.categoria || "").toLowerCase();
+      if (!desc.includes(txt) && !cat.includes(txt)) return false;
     }
-  
+
     return true;
   });
 
   useEffect(() => {
     const loadUser = async () => {
-      const user = await UserController.getLoggedUser();
-      if (user) setUserId(user.id);
+      const u = await UserController.getLoggedUser();
+      if (u) setUserId(u.id);
     };
     loadUser();
   }, []);
-  
 
   useEffect(() => {
     if (!userId) return;
@@ -110,21 +89,17 @@ export default function TransaccionesScreen() {
     };
 
     fetchTransactions();
-    const listener = async () => fetchTransactions();
 
+    const listener = () => fetchTransactions();
     TransactionController.addListener(listener);
+
     return () => TransactionController.removeListener(listener);
+
   }, [userId]);
 
-  const tipodeicono = (tipo) => {
-    if (tipo === 'gasto') return iconoGasto;
-    if (tipo === 'ingreso') return iconoIngreso;
-    return iconoGasto;
-  };
+  const tipodeicono = (tipo) => tipo === "ingreso" ? iconoIngreso : iconoGasto;
 
   const handleDelete = async (id) => {
-    if (!userId) return;
-
     Alert.alert(
       "Eliminar Transacción",
       "¿Estás seguro?",
@@ -140,10 +115,20 @@ export default function TransaccionesScreen() {
       return Alert.alert("Error", "Completa todos los campos.");
 
     const tipo = addEsGasto ? "gasto" : "ingreso";
-    const monto = parseFloat(addMonto);
     const fecha = new Date().toISOString().split("T")[0];
 
-    await TransactionController.add(userId, monto, addCategoria, addTransaccion, tipo, fecha);
+    const result = await TransactionController.add(
+      userId,
+      parseFloat(addMonto),
+      addCategoria,
+      addTransaccion,
+      tipo,
+      fecha
+    );
+
+    if (result.success && result.alertMessage) {
+      Alert.alert("Alerta de Presupuesto", result.alertMessage);
+    }
 
     resetAddFields();
     setModalVisibleAdd(false);
@@ -153,16 +138,13 @@ export default function TransaccionesScreen() {
     if (!editTransaccion || !editCategoria || !editMonto)
       return Alert.alert("Error", "Completa todos los campos.");
 
-    const tipo = editEsGasto ? "gasto" : "ingreso";
-    const monto = parseFloat(editMonto);
-
     await TransactionController.updateTransaction(
       transactionToEdit.id,
       userId,
-      monto,
+      parseFloat(editMonto),
       editCategoria,
       editTransaccion,
-      tipo,
+      editEsGasto ? "gasto" : "ingreso",
       transactionToEdit.fecha
     );
 
@@ -170,14 +152,12 @@ export default function TransaccionesScreen() {
     setModalVisibleEdit(false);
   };
 
-  const handleEditModal = (transaction) => {
-    setTransactionToEdit(transaction);
-
-    setEditTransaccion(transaction.descripcion);
-    setEditCategoria(transaction.categoria);
-    setEditMonto(String(transaction.monto));
-    setEditEsGasto(transaction.tipo === "gasto");
-
+  const handleEditModal = (t) => {
+    setTransactionToEdit(t);
+    setEditTransaccion(t.descripcion);
+    setEditCategoria(t.categoria);
+    setEditMonto(String(t.monto));
+    setEditEsGasto(t.tipo === "gasto");
     setModalVisibleEdit(true);
   };
 
@@ -196,96 +176,158 @@ export default function TransaccionesScreen() {
   };
 
   return (
+
     <View style={styles.container}>
 
-    
-      <View style={styles.conetenedorEncabezado}>
+   
+      <View style={styles.contenedorEncabezado}>
         <Text style={styles.titulo}>Transacciones</Text>
-        
         <Image source={filtro} style={styles.imagenFiltro} />
       </View>
 
+      
       <ScrollView contentContainerStyle={styles.scrollContenido}>
 
+        
         <TextInput
-          style={styles.busquueda}
+          style={styles.busqueda}
+          placeholder="Buscar transacción"
           value={textoBusqueda}
-          placeholder='Buscar Transacción'
           onChangeText={setTextoBusqueda}
         />
 
         <View style={styles.botonera}>
-          <TouchableOpacity style={styles.botonAbrirModal}onPress={() => setModalFiltroTipo(true)}>
+          <TouchableOpacity
+            style={styles.botonAbrirModal}
+            onPress={() => setModalFiltroTipo(true)}>
             <Text style={styles.textoAbrirModal}>Filtrar por tipo</Text>
           </TouchableOpacity>
-        
-          <TouchableOpacity style={styles.openFilterButton} onPress={() => setCategoryModalVisible(true)}>
+
+          <TouchableOpacity
+            style={styles.openFilterButton}
+            onPress={() => setCategoryModalVisible(true)}>
             <Text style={styles.openFilterButtonText}>Filtrar por categoría</Text>
           </TouchableOpacity>
         </View>
-        <View style={{marginLeft:20}}>
-        <TouchableOpacity style={styles.botonAbrirModal} onPress={() => setModalFiltroFecha(true)}>
-           <Text style={styles.textoAbrirModal}>Filtrar por Fecha</Text>
-        </TouchableOpacity>
-        </View>
-       
 
-        <View style={styles.contenedorDeTodasLasTransaccione}>
-        <TouchableOpacity  style={styles.botonLimpiarFiltros} onPress={limpiarFiltros}>
-           <Text style={styles.textoLimpiarFiltros}>Recargar</Text>
-        </TouchableOpacity>
+        <View style={{ marginLeft: 20 }}>
+          <TouchableOpacity
+            style={styles.botonAbrirModal}
+            onPress={() => setModalFiltroFecha(true)}>
+            <Text style={styles.textoAbrirModal}>Filtrar por fecha</Text>
+          </TouchableOpacity>
+        </View>
+
+       
+        <View style={styles.contenedorDeTodasLasTransacciones}>
+          <TouchableOpacity
+            style={styles.botonLimpiarFiltros}
+            onPress={limpiarFiltros}>
+            <Text style={styles.textoLimpiarFiltros}>Recargar</Text>
+          </TouchableOpacity>
 
           {transaccionesFiltradas.length === 0 ? (
-            <Text style={{ textAlign: "center", marginVertical: 30, fontSize: 16, color: "#555" }}>
-              No hay transacciones registradas.
+            <Text style={{ textAlign: "center", marginVertical: 30 }}>
+              No hay transacciones registradas
             </Text>
           ) : (
             transaccionesFiltradas.map((t) => (
-              <View key={t.id} style={styles.conendorTransaccion}>
+              <View key={t.id} style={styles.contenedorTransaccion}>
+
                 <View style={styles.iconoContenedor}>
                   <Image source={tipodeicono(t.tipo)} style={styles.imagenRestaurante} />
                 </View>
 
                 <Text style={styles.textoTransaccion}>{t.descripcion}</Text>
-                <Text style={styles.textoTransaccionCategoria}>{t.categoria} {t.fecha}</Text>
 
-                <Text style={[styles.dineroComida, t.tipo === 'ingreso' && styles.dineroSalario]}>
-                  {t.tipo === 'gasto' ? `-$${t.monto}` : `+$${t.monto}`}
+                <Text style={styles.textoTransaccionCategoria}>
+                  {t.categoria} - {t.fecha}
+                </Text>
+
+                <Text style={[
+                  styles.dineroComida,
+                  t.tipo === "ingreso" && styles.dineroSalario
+                ]}>
+                  {t.tipo === "gasto" ? `-$${t.monto}` : `+$${t.monto}`}
                 </Text>
 
                 <View style={styles.contenedorBotonesEliminaryEditar}>
-                  <TouchableOpacity style={styles.botonEditar} onPress={() => handleEditModal(t)}>
+                  <TouchableOpacity
+                    style={styles.botonEditar}
+                    onPress={() => handleEditModal(t)}>
                     <Text style={styles.textoEditar}>Editar</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.botonEliminar} onPress={() => handleDelete(t.id)}>
+                  <TouchableOpacity
+                    style={styles.botonEliminar}
+                    onPress={() => handleDelete(t.id)}>
                     <Text style={styles.textoEliminar}>Eliminar</Text>
                   </TouchableOpacity>
                 </View>
+
               </View>
             ))
           )}
         </View>
+
       </ScrollView>
 
-   
-      <Modal animationType="fade" transparent={true} visible={modalVisibleAdd}>
+      
+      <TouchableOpacity
+        style={styles.accionBoton}
+        onPress={() => {
+          resetAddFields();
+          setModalVisibleAdd(true);
+        }}>
+        <Image source={agregarIcono} style={styles.campanaIcono} />
+        <Text style={styles.accionTexto}>Agregar</Text>
+      </TouchableOpacity>
+
+      
+      <Modal visible={modalVisibleAdd} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+
             <Text style={styles.modalTitle}>Agregar Transacción</Text>
 
-            <TextInput style={styles.modalInput} placeholder="Descripción" value={addTransaccion} onChangeText={setAddTransaccion} />
-            <TextInput style={styles.modalInput} placeholder="Categoría" value={addCategoria} onChangeText={setAddCategoria} />
-            <TextInput style={styles.modalInput} placeholder="Monto" value={addMonto} keyboardType='numeric' onChangeText={setAddMonto} />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Descripción"
+              value={addTransaccion}
+              onChangeText={setAddTransaccion}
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Categoría"
+              value={addCategoria}
+              onChangeText={setAddCategoria}
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Monto"
+              keyboardType="numeric"
+              value={addMonto}
+              onChangeText={setAddMonto}
+            />
 
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>Gasto</Text>
-              <Switch value={!addEsGasto} onValueChange={() => setAddEsGasto(!addEsGasto)} />
+              <Switch
+                value={!addEsGasto}
+                onValueChange={() => setAddEsGasto(!addEsGasto)}
+              />
               <Text style={styles.switchText}>Ingreso</Text>
             </View>
 
             <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity style={styles.btnCancel} onPress={() => { setModalVisibleAdd(false); resetAddFields(); }}>
+              <TouchableOpacity
+                style={styles.btnCancel}
+                onPress={() => {
+                  setModalVisibleAdd(false);
+                  resetAddFields();
+                }}>
                 <Text style={styles.btnCancelText}>Cancelar</Text>
               </TouchableOpacity>
 
@@ -293,28 +335,56 @@ export default function TransaccionesScreen() {
                 <Text style={styles.btnSaveText}>Guardar</Text>
               </TouchableOpacity>
             </View>
+
           </View>
         </View>
       </Modal>
 
-     
-      <Modal animationType="fade" transparent={true} visible={modalVisibleEdit}>
+      
+      <Modal visible={modalVisibleEdit} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+
             <Text style={styles.modalTitle}>Editar Transacción</Text>
 
-            <TextInput style={styles.modalInput} placeholder="Descripción" value={editTransaccion} onChangeText={setEditTransaccion} />
-            <TextInput style={styles.modalInput} placeholder="Categoría" value={editCategoria} onChangeText={setEditCategoria} />
-            <TextInput style={styles.modalInput} placeholder="Monto" value={editMonto} keyboardType='numeric' onChangeText={setEditMonto} />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Descripción"
+              value={editTransaccion}
+              onChangeText={setEditTransaccion}
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Categoría"
+              value={editCategoria}
+              onChangeText={setEditCategoria}
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Monto"
+              value={editMonto}
+              keyboardType="numeric"
+              onChangeText={setEditMonto}
+            />
 
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>Gasto</Text>
-              <Switch value={!editEsGasto} onValueChange={() => setEditEsGasto(!editEsGasto)} />
+              <Switch
+                value={!editEsGasto}
+                onValueChange={() => setEditEsGasto(!editEsGasto)}
+              />
               <Text style={styles.switchText}>Ingreso</Text>
             </View>
 
             <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity style={styles.btnCancel} onPress={() => { setModalVisibleEdit(false); resetEditFields(); }}>
+              <TouchableOpacity
+                style={styles.btnCancel}
+                onPress={() => {
+                  setModalVisibleEdit(false);
+                  resetEditFields();
+                }}>
                 <Text style={styles.btnCancelText}>Cancelar</Text>
               </TouchableOpacity>
 
@@ -327,100 +397,108 @@ export default function TransaccionesScreen() {
         </View>
       </Modal>
 
-      <TouchableOpacity style={styles.accionBoton} onPress={() => { resetAddFields(); setModalVisibleAdd(true); }}>
-        <Image source={agregarIcono} style={styles.campanaIcono} />
-        <Text style={styles.accionTexto}>Agregar</Text>
-      </TouchableOpacity>
       
+      <Modal visible={categoryModalVisible} transparent animationType="fade">
 
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
 
-
-      <Modal
-         visible={categoryModalVisible}
-         transparent
-         animationType="fade"
-         onRequestClose={() => setCategoryModalVisible(false)} >
-
-         <View style={styles.modalOverlay}>
-           <View style={styles.modalContainer}>
-       
             <Text style={styles.modalTitle}>Filtrar por Categoría</Text>
 
             <ScrollView style={{ maxHeight: 300 }}>
-        
-             <TouchableOpacity style={[ styles.filterOption,selectedCategory === "todas" && styles.optionActive]}
-               onPress={() => {setSelectedCategory("todas");
-               setCategoryModalVisible(false);}}>
-               <Text style={[ styles.filterOptionText,selectedCategory === "todas" && styles.optionActiveText ]} > Todas </Text>
-             </TouchableOpacity>
 
-             {categorias.map((cat, index) => (
-               <TouchableOpacity key={index} style={[ styles.filterOption, selectedCategory === cat && styles.optionActive]}
-                 onPress={() => {setSelectedCategory(cat);
-                   setCategoryModalVisible(false);}}>
-             <Text style={[ styles.filterOptionText, selectedCategory === cat && styles.optionActiveText  ]}> {cat} </Text>
-          </TouchableOpacity>
-        ))}
-       
-       </ScrollView>
+              <TouchableOpacity
+                style={[styles.filterOption, selectedCategory === "todas" && styles.optionActive]}
+                onPress={() => {
+                  setSelectedCategory("todas");
+                  setCategoryModalVisible(false);
+                }}>
+                <Text style={[styles.filterOptionText, selectedCategory === "todas" && styles.optionActiveText]}>
+                  Todas
+                </Text>
+              </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => setCategoryModalVisible(false)} style={styles.closeButton} >
-        <Text style={styles.closeButtonText}>Cerrar</Text>
-      </TouchableOpacity>
+              {categorias.map((cat, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.filterOption, selectedCategory === cat && styles.optionActive]}
+                  onPress={() => {
+                    setSelectedCategory(cat);
+                    setCategoryModalVisible(false);
+                  }}>
+                  <Text style={[styles.filterOptionText, selectedCategory === cat && styles.optionActiveText]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
 
-      </View>
-    </View>
-  </Modal>
+            </ScrollView>
 
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setCategoryModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
 
-     <Modal animationType="fade" transparent={true} visible={modalFiltroTipo}>
-       <View style={styles.modalOverlay}>
+          </View>
+        </View>
+
+      </Modal>
+
+      <Modal visible={modalFiltroTipo} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+
             <Text style={styles.modalTitle}>Filtrar por tipo</Text>
 
             <TouchableOpacity
               style={[styles.botonMinimal, filtroTipo === "todos" && styles.botonMinimalActivo]}
-              onPress={() => { setFiltroTipo("todos"); setModalFiltroTipo(false); }}
-            >
+              onPress={() => {
+                setFiltroTipo("todos");
+                setModalFiltroTipo(false);
+              }}>
               <Text style={[styles.botonMinimalTexto, filtroTipo === "todos" && styles.botonMinimalTextoActivo]}>
                 Todos
               </Text>
             </TouchableOpacity>
 
-   
-             <TouchableOpacity
-               style={[styles.botonMinimal, filtroTipo === "gasto" && styles.botonMinimalActivo]}
-               onPress={() => { setFiltroTipo("gasto"); setModalFiltroTipo(false); }}>
-               <Text style={[styles.botonMinimalTexto, filtroTipo === "gasto" && styles.botonMinimalTextoActivo]}>
-                 Gastos
-               </Text>
-             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.botonMinimal, filtroTipo === "gasto" && styles.botonMinimalActivo]}
+              onPress={() => {
+                setFiltroTipo("gasto");
+                setModalFiltroTipo(false);
+              }}>
+              <Text style={[styles.botonMinimalTexto, filtroTipo === "gasto" && styles.botonMinimalTextoActivo]}>
+                Gastos
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.botonMinimal, filtroTipo === "ingreso" && styles.botonMinimalActivo]}
+              onPress={() => {
+                setFiltroTipo("ingreso");
+                setModalFiltroTipo(false);
+              }}>
+              <Text style={[styles.botonMinimalTexto, filtroTipo === "ingreso" && styles.botonMinimalTextoActivo]}>
+                Ingresos
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.botonCancelar]}
+              onPress={() => setModalFiltroTipo(false)}>
+              <Text style={styles.cancelarText}>Cerrar</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
 
       
-             <TouchableOpacity
-               style={[styles.botonMinimal, filtroTipo === "ingreso" && styles.botonMinimalActivo]}
-               onPress={() => { setFiltroTipo("ingreso"); setModalFiltroTipo(false); }}
-             >
-               <Text style={[styles.botonMinimalTexto, filtroTipo === "ingreso" && styles.botonMinimalTextoActivo]}>
-                 Ingresos
-               </Text>
-             </TouchableOpacity>
-       
-             <View style={{ marginTop: 15 }}>
-               <TouchableOpacity style={styles.botonCancelar} onPress={() => setModalFiltroTipo(false)}>
-                 <Text style={styles.cancelarText}>Cerrar</Text>
-               </TouchableOpacity>
-             </View>
-    
-        </View>
-       </View>
-     </Modal>
-
-
-
-     <Modal animationType="fade" transparent={true} visible={modalFiltroFecha}>
+      <Modal visible={modalFiltroFecha} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+
             <Text style={styles.modalTitle}>Filtrar por Fecha</Text>
 
             <TextInput
@@ -429,6 +507,7 @@ export default function TransaccionesScreen() {
               value={fechaInicio}
               onChangeText={setFechaInicio}
             />
+
             <TextInput
               style={styles.modalInput}
               placeholder="Fecha Fin (YYYY-MM-DD)"
@@ -437,39 +516,38 @@ export default function TransaccionesScreen() {
             />
 
             <View style={styles.modalButtonsContainer}>
+
               <TouchableOpacity
-                style={styles.btnCancel}  onPress={() => setModalFiltroFecha(false)}>
+                style={styles.btnCancel}
+                onPress={() => setModalFiltroFecha(false)}>
                 <Text style={styles.btnCancelText}>Cancelar</Text>
               </TouchableOpacity>
-      
-              <TouchableOpacity style={styles.btnSave}
-                  onPress={async () => {
-                    if (!userId || !validarFechas(fechaInicio, fechaFin)){
-                      Alert.alert("Error", "Fechas inválidas. Asegúrate de que la fecha inicio no sea mayor a la fecha fin y que estén en formato YYYY-MM-DD.");
-                      return;
-                    } 
-                    const resultados = await TransactionController.getFecha(userId, fechaInicio, fechaFin);
-                    setTransactions(resultados);
-                    setModalFiltroFecha(false);
-                  }} >
-                  <Text style={styles.btnSaveText}>Filtrar</Text>
-              
+
+              <TouchableOpacity
+                style={styles.btnSave}
+                onPress={async () => {
+                  if (!validarFechas(fechaInicio, fechaFin)) {
+                    Alert.alert("Error", "Fechas inválidas.");
+                    return;
+                  }
+                  const res = await TransactionController.getFecha(userId, fechaInicio, fechaFin);
+                  setTransactions(res);
+                  setModalFiltroFecha(false);
+                }}>
+                <Text style={styles.btnSaveText}>Filtrar</Text>
               </TouchableOpacity>
-             </View>
-           </View>
-         </View>
-       </Modal>
+
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </View>
   );
 }
 
 
-
 const styles = StyleSheet.create({
-
-
-
   container: {
     flex: 1,
     backgroundColor: '#e5dcb9ff',
@@ -478,15 +556,12 @@ const styles = StyleSheet.create({
   scrollContenido: {
     paddingBottom: 40,
     flexGrow: 1,
-    
   },
 
- 
-
-  conetenedorEncabezado: {
+  contenedorEncabezado: {
     backgroundColor: "#ffff",
     width: "100%",
-    height: "10%",
+    height: 90,
     alignItems: "center"
   },
 
@@ -494,115 +569,75 @@ const styles = StyleSheet.create({
     marginTop: 35,
     fontSize: 25,
     fontWeight: "bold",
-    textAlign: "center"
   },
 
   imagenFiltro: {
-    marginTop: 35,
     width: 35,
     height: 35,
     position: "absolute",
-    right: 10
+    right: 10,
+    top: 35,
   },
 
- 
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-
-  modalCard: {
-    width: "85%",
+  busqueda: {
     backgroundColor: "#fff",
-    padding: 22,
-    borderRadius: 16,
-    elevation: 10
-  },
-
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center"
-  },
-
-  modalInput: {
+    marginHorizontal: 30,
+    marginTop: 20,
+    paddingHorizontal: 10,
+    height: 40,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
+    marginBottom: 20
+  },
+
+  botonera: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 10
+  },
+
+  botonAbrirModal: {
+    backgroundColor: "#333",
     padding: 10,
-    marginTop: 12
-  },
-
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20
-  },
-
-  switchText: {
-    fontSize: 16,
-    marginHorizontal: 10
-  },
-
-  modalButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20
-  },
-
-  btnCancel: {
-    flex: 1,
-    backgroundColor: "#f3f3f3",
-    paddingVertical: 12,
     borderRadius: 10,
-    marginRight: 8,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc"
-  },
-
-  btnCancelText: {
-    fontWeight: "bold",
-    color: "#555",
-    fontSize: 16
-  },
-
-  btnSave: {
-    flex: 1,
-    backgroundColor: "#d8c242ff",
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginLeft: 8,
+    width: "40%",
     alignItems: "center"
   },
 
-  btnSaveText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#000"
+  textoAbrirModal: { color: "#fff", fontWeight: "bold" },
+
+  openFilterButton: {
+    backgroundColor: "#333",
+    padding: 10,
+    borderRadius: 10,
+    width: "40%",
+    alignItems: "center"
   },
 
+  openFilterButtonText: { color: "#fff", fontWeight: "bold" },
 
-
-  contenedorDeTodasLasTransaccione: {
+  contenedorDeTodasLasTransacciones: {
     marginTop: 20,
-    backgroundColor: "#ffffff",
-    marginLeft: 15,
-    marginRight: 15,
+    backgroundColor: "#fff",
+    marginHorizontal: 15,
     borderRadius: 15,
-    paddingVertical: 15,
+    paddingVertical: 15
   },
 
-  conendorTransaccion: {
+  botonLimpiarFiltros: {
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    marginBottom: 10
+  },
+
+  textoLimpiarFiltros: { color: '#007AFF', fontWeight: 'bold' },
+
+  contenedorTransaccion: {
     marginBottom: 20,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd'
+    borderBottomColor: "#ddd"
   },
 
   iconoContenedor: {
@@ -612,9 +647,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
+    backgroundColor: "#fdecea",
     marginTop: 15,
-    marginLeft: 20,
-    backgroundColor: "#fdecea"
+    marginLeft: 20
   },
 
   imagenRestaurante: {
@@ -624,15 +659,15 @@ const styles = StyleSheet.create({
 
   textoTransaccion: {
     fontSize: 18,
-    marginTop: 20,
     marginLeft: 80,
+    marginTop: 20,
     fontWeight: "bold"
   },
 
   textoTransaccionCategoria: {
     marginLeft: 80,
     fontSize: 14,
-    color: '#555'
+    color: "#555"
   },
 
   dineroComida: {
@@ -643,8 +678,8 @@ const styles = StyleSheet.create({
     color: "red"
   },
 
-  dineroSalario: {
-    color: "#9ad654ff"
+  dineroSalario: { 
+  color: "#72b13e" 
   },
 
   contenedorBotonesEliminaryEditar: {
@@ -668,214 +703,166 @@ const styles = StyleSheet.create({
     height: 30,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 20,
+    marginLeft: 10,
     borderRadius: 15
   },
 
-  textoEliminar: {
-    color: "#fff",
-    fontSize: 17
-  },
-
-  textoEditar: {
-    color: "#fff",
-    fontSize: 18
-  },
-
-
+  textoEditar: { color: "#fff",
+   fontSize: 17 },
+  textoEliminar: { color: "#fff",
+   fontSize: 17 },
 
   accionBoton: {
-    position:"absolute",
-    backgroundColor: '#FFFFFF',
+    position: "absolute",
+    bottom: 25,
+    right: 20,
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    width: 90,
     borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    width: '22%',
-    elevation: 4,
-    left: 270,
-    marginBottom: 20,
-    marginTop:"180%"
+    alignItems: "center",
+    elevation: 4
   },
 
-  campanaIcono: {
-    width: 25,
-    height: 25,
-    resizeMode: 'contain'
-  },
+  campanaIcono: { width: 25,
+   height: 25 },
 
-  accionTexto: {
-    fontSize: 12,
-    color: '#333',
-    marginTop: 4
-  },
+  accionTexto: { fontSize: 12,
+   marginTop: 4,
+   color: "#333" },
 
  
-  busquueda: {
-    backgroundColor: "#ffffff",
-    marginHorizontal: 30,
-    marginTop: 20,
-    paddingHorizontal: 10,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 20
-  },
-
-  
-  contenedorFiltrosTipo: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginVertical: 10,
-    gap: 10
-  },
-
-  botonFiltro: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    backgroundColor: "#e3e3e3"
-  },
-
-  botonActivo: {
-    backgroundColor: "#4caf50"
-  },
-  textFiltro:{
-    fontWeight:"bold",
-    marginLeft:30,
-    fontSize:20
-  },modalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
-  
+
+  modalCard: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 22,
+    borderRadius: 16,
+    elevation: 10
+  },
+
   modalContainer: {
     width: "85%",
     backgroundColor: "#fff",
     padding: 20,
-    borderRadius: 20,
-    elevation: 10,
+    borderRadius: 20
   },
-  
+
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: "center",
+    textAlign: "center"
   },
-  
-  filterOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 12,
+
+  modalInput: {
     borderWidth: 1,
     borderColor: "#ccc",
-    backgroundColor: "#f4f4f4",
-    marginBottom: 10,
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 12
   },
-  
-  filterOptionText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#555",
+
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20
   },
-  
+
+  switchText: { fontSize: 16, 
+  marginHorizontal: 10 },
+
+  modalButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20
+  },
+
+  btnCancel: {
+    flex: 1,
+    backgroundColor: "#f3f3f3",
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginRight: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc"
+  },
+
+  btnCancelText: { color: "#333",
+   fontWeight: "bold" },
+
+  btnSave: {
+    flex: 1,
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginLeft: 8,
+    alignItems: "center"
+  },
+
+  btnSaveText: { color: "#fff", 
+  fontWeight: "bold" },
+
+  filterOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ddd"
+  },
+
+  filterOptionText: { 
+  fontSize: 16 },
+
   optionActive: {
-    backgroundColor: "#d8c242ff",
-    borderColor: "#bca21d",
-  },
-  
-  optionActiveText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  
+   backgroundColor: "#333" },
+  optionActiveText: { color: "#fff",
+  fontWeight: "bold" },
+
   closeButton: {
     marginTop: 15,
-    paddingVertical: 12,
+    padding: 12,
     backgroundColor: "#333",
-    borderRadius: 12,
-  },
-  
-  closeButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  
-  openFilterButton: {
-    backgroundColor: "#d8c242ff",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    alignSelf: "flex-start",
-    marginBottom: 10,
-  },
-  
-  openFilterButtonText: {
-    color: "#000",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  botonMinimal: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#b5b5b5",
-    marginVertical: 6,
-    alignItems: "center",
-    backgroundColor: "#ffffff"
+    alignItems: "center"
   },
-  
-  botonMinimalActivo: {
-    borderColor: "#d8c242ff",
-    backgroundColor: "#d8c242ff"
+
+  closeButtonText: { color: "#fff",
+   fontWeight: "bold" },
+
+
+  botonMinimal: {
+    backgroundColor: "#f3f3f3",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10
   },
-  
-  botonMinimalTexto: {
-    fontSize: 16,
-    color: "#333"
+
+  botonMinimalActivo: { 
+  backgroundColor: "#333" },
+
+  botonMinimalTexto: { fontSize: 16, 
+  textAlign: "center" },
+
+  botonMinimalTextoActivo: { color: "#fff",
+   fontWeight: "bold" },
+
+  botonCancelar: {
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#999"
   },
-  
-  botonMinimalTextoActivo: {
-    color: "#000",
-    fontWeight: "bold"
-  },botonAbrirModal: {
-    backgroundColor: "#d8c242ff",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 12,
-    alignSelf: "flex-start",
-    marginBottom: 10,
-  },
-  
-  textoAbrirModal: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "bold"
-  }, botonera: {
-    flexDirection: 'row',     
-    justifyContent: 'space-around', 
-    alignItems: 'center',      
-    marginVertical: 10,        
-    paddingHorizontal: 10,    
-  },botonCancelar:{
-     alignItems:"center",
-     justifyContent:"center",
-     backgroundColor:"black",
-     borderRadius:10,
-     height:45
-  }, cancelarText:{
-    fontSize: 20,
-    color: "#fff"
-  },botonLimpiarFiltros:{
-    marginLeft:250
-  }
+
+  cancelarText: { color: "#fff", 
+  fontWeight: "bold", 
+  textAlign: "center" },
 
 });
-
-

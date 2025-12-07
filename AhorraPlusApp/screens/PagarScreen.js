@@ -35,17 +35,17 @@ export default function PagarScreen({ navigation }) {
     <View style={styles.main}>
       <ScrollView contentContainerStyle={styles.container}>
         
-        {/* Flecha de regresar */}
+       
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
           <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
 
-        {/* Título */}
+      
         <View style={styles.header}>
           <Text style={styles.titulo}>Pagar</Text>
         </View>
 
-        {/* Lista pagos */}
+       
         <View style={styles.transZona}>
           {pagos.length === 0 ? (
           <Text style={styles.mensajeVacio}>Aún no hay pagos registrados</Text>
@@ -70,7 +70,6 @@ export default function PagarScreen({ navigation }) {
       )}
       </View>
 
-        {/* Botón agregar */}
         <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
           <Ionicons name="add-circle-outline" size={22} color="#000" />
           <Text style={styles.botonTexto}>Realizar pago</Text>
@@ -78,7 +77,7 @@ export default function PagarScreen({ navigation }) {
 
       </ScrollView>
 
-      {/* Modal flotante */}
+     
       <Modal
         animationType="slide"
         transparent={true}

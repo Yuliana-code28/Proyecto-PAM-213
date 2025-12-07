@@ -19,12 +19,12 @@ export default function PerfilScreen({ navigation }) {
   const [totalCategorias, setTotalCategorias] = useState(0);
   const [diasActivos, setDiasActivos] = useState(0);
 
-  // Estados para los modales
+
   const [modalNombreVisible, setModalNombreVisible] = useState(false);
   const [modalSeguridadVisible, setModalSeguridadVisible] = useState(false);
   const [notificacionesModalVisible, setNotificacionesModalVisible] = useState(false);
 
-  // Inputs
+  
   const [editNombre, setEditNombre] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,7 +66,7 @@ export default function PerfilScreen({ navigation }) {
     ]);
   };
 
-  // --- Funciones para Editar Nombre ---
+
   const abrirModalNombre = () => {
     setEditNombre(user.nombre);
     setModalNombreVisible(true);
@@ -86,7 +86,7 @@ export default function PerfilScreen({ navigation }) {
       }
   }
 
-  // --- Funciones para Seguridad (Password) ---
+
   const abrirModalSeguridad = () => {
     setNewPassword('');
     setConfirmPassword('');
@@ -159,7 +159,7 @@ export default function PerfilScreen({ navigation }) {
         </View>
 
         <View style={styles.tarjetaOpciones}>
-          {/* Botón Editar Perfil (Solo Nombre) */}
+         
           <TouchableOpacity style={styles.itemOpcion} onPress={abrirModalNombre}>
             <View style={styles.contenedorIconoOpcion}>
               <Image source={editarIcono} style={styles.campanaIcono} />
@@ -182,7 +182,7 @@ export default function PerfilScreen({ navigation }) {
             <Text style={styles.flechaOpcion}>{'>'}</Text>
           </TouchableOpacity>
 
-          {/* Botón Seguridad (Cambiar Contraseña) */}
+          
           <TouchableOpacity style={[styles.itemOpcion, { borderBottomWidth: 0 }]} onPress={abrirModalSeguridad}>
             <View style={styles.contenedorIconoOpcion}>
               <Image source={seguridadIcono} style={styles.campanaIcono} />
@@ -201,7 +201,7 @@ export default function PerfilScreen({ navigation }) {
 
       </ScrollView>
 
-      {/* Modal Editar Nombre */}
+   
       <Modal animationType="slide" transparent={true} visible={modalNombreVisible} onRequestClose={() => setModalNombreVisible(false)}>
           <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
@@ -233,7 +233,7 @@ export default function PerfilScreen({ navigation }) {
           </View>
       </Modal>
 
-      {/* Modal Seguridad (Contraseña) */}
+ 
       <Modal animationType="slide" transparent={true} visible={modalSeguridadVisible} onRequestClose={() => setModalSeguridadVisible(false)}>
           <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
@@ -269,7 +269,7 @@ export default function PerfilScreen({ navigation }) {
           </View>
       </Modal>
 
-      {/* Modal Notificaciones */}
+    
       <Modal animationType='fade' transparent={true} visible={notificacionesModalVisible} onRequestClose={() => setNotificacionesModalVisible(false)}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>

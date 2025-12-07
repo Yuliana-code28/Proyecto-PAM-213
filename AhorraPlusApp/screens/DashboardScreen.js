@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../contexto/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import TransactionController from '../controllers/TransactionController'; // <--- 1. Importar Controlador
+import TransactionController from '../controllers/TransactionController'; 
 
 const campanaIcono = require('../assets/imagen/campana.png');
 const transIcono = require('../assets/imagen/cartera.webp');
