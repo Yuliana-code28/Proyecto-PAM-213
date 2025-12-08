@@ -159,6 +159,6 @@ export class UserController {
             return { success: false, error: error.message };
         }
     }
-}
+} 
 
 export default new UserController();

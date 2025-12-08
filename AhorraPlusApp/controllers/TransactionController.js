@@ -68,9 +68,9 @@ export class TransactionController {
           )
           .reduce((sum, t) => sum + t.monto, 0);
   
-        // ALERTA SOLO SI SE EXCEDE ESTA MISMA CATEGORÍA
+        // Alerta
         if (presupuestoCat && totalCategoria > presupuestoCat.monto) {
-          alertMessage = `¡Has excedido el presupuesto de la categoría "${categoria}" ($${presupuestoCat.monto})!`;
+          alertMessage = `Se excedio el presupuesto de "${categoria}", cuyo limite era de ($${presupuestoCat.monto})`;
         }
       }
   

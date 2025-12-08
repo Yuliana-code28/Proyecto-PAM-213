@@ -28,25 +28,21 @@ export default function PresupuestoScreen() {
     return now.toISOString().slice(0, 7);
   };
 
-  useFocusEffect(
+useFocusEffect(
     useCallback(() => {
-        let isActive = true;
+      let isActive = true;
 
-        const loadData = async () => {
-            await new Promise(resolve => setTimeout(resolve, 150)); // Espera AsyncStorage
+      const loadData = async () => {
+        const user = await UserController.getLoggedUser();
+        if (user && isActive) {
+          setUserId(user.id);
+        }
+      };
 
-            const user = await UserController.getLoggedUser();
-
-            if (user && isActive) {
-                setUserId(user.id);
-                fetchBudgets(user.id);
-            }
-        };
-
-        loadData();
-        return () => { isActive = false; };
+      loadData();
+      return () => { isActive = false; };
     }, [])
-);
+  );
 
 useEffect(() => {
   if (!userId) return;
@@ -57,7 +53,7 @@ useEffect(() => {
     setLoading(true);
     const allBudgets = await BudgetController.getAll(id);
     const allTransactions = await TransactionController.getAll(id);
-
+    
     const budgetsWithProgress = allBudgets.map(b => {
       const gastado = allTransactions
         .filter(t =>
@@ -66,9 +62,16 @@ useEffect(() => {
           (t.categoria.trim().toLowerCase() === b.descripcion.trim().toLowerCase() || b.descripcion === '')
         )
         .reduce((sum, t) => sum + t.monto, 0);
-
       return { ...b, gastado };
     });
+
+    budgetsWithProgress.forEach(b => {
+    if (b.gastado > b.monto) {
+      sendNotificationToDashboard(
+        `Presupuesto excedido en ${b.descripcion}. Límite: $${b.monto}, Gastado: $${b.gastado}`
+      );
+    }
+  });
 
     setBudgets(budgetsWithProgress);
     setLoading(false);
@@ -103,15 +106,20 @@ useEffect(() => {
   }
 
   const sendNotificationToDashboard = async (message) => {
-    try {
-      const current = await AsyncStorage.getItem('user_notifications');
-      const parsed = current ? JSON.parse(current) : [];
+  try {
+    const current = await AsyncStorage.getItem('user_notifications');
+    const parsed = current ? JSON.parse(current) : [];
+    
+    const exists = parsed.some(notif => notif.text === message);
+    
+    if (!exists) {
       const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
       const updated = [newNotif, ...parsed];
       await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
-    } catch (e) {
-      console.error("Error guardando notificación", e);
     }
+   } catch (e) {
+      console.error("Error guardando notificación", e);
+   }
   };
 
   const openNew = async () => {

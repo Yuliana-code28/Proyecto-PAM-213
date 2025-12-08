@@ -143,8 +143,6 @@ class DatabaseService {
         }
     }
 
-
-
     async addTransaction(userId, monto, categoria, descripcion, tipo, fecha) {
         const result = await this.db.runAsync(
             'INSERT INTO transacciones (user_id, monto, categoria, descripcion, tipo, fecha) VALUES (?, ?, ?, ?, ?, ?)',

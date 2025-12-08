@@ -125,7 +125,7 @@ export default function TransaccionesScreen() {
       tipo,
       fecha
     );
-
+ 
     if (result.success && result.alertMessage) {
       Alert.alert("Alerta de Presupuesto", result.alertMessage);
     }
