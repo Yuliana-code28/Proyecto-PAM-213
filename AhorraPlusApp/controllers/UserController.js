@@ -8,24 +8,34 @@ export class UserController {
     }
 
     async register(nombre, correo, telefono, password) {
-        try {
-            User.validar(nombre, correo, password);
-            const userRaw = await DatabaseService.registerUser(nombre, correo, telefono, password);
-            return { 
-                success: true, 
-                user: new User(
-                    userRaw.id,
-                    userRaw.nombre,
-                    userRaw.correo,
-                    userRaw.telefono,
-                    userRaw.fecha_creacion
-                )
-            };
-        } catch (error) {
-            console.error(error);
-            return { success: false, error: error.message };
+    try {
+        User.validar(nombre, correo, password);
+
+         // Verificacion del correo (ver si ya estaba registrado)
+        const existingUser = await DatabaseService.findUserByCorreo(correo);
+        if (existingUser) {
+            return { success: false, error: "El correo ya está registrado. Usa otro o inicia sesión." };
         }
+
+        // Registrar usuario
+        const userRaw = await DatabaseService.registerUser(nombre, correo, telefono, password);
+
+        return { 
+            success: true, 
+            user: new User(
+                userRaw.id,
+                userRaw.nombre,
+                userRaw.correo,
+                userRaw.telefono,
+                userRaw.fecha_creacion
+            )
+        };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: error.message };
     }
+}
+
 
     async login(correo, password, recordar = false) {
         try {

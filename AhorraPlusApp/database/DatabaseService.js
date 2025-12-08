@@ -95,7 +95,18 @@ class DatabaseService {
             [id]
         );
     }
-
+    
+    async findUserByCorreo(correo) {
+    try {
+        return await this.db.getFirstAsync(
+            'SELECT * FROM users WHERE correo = ?',
+            [correo]
+        );
+    } catch (error) {
+        console.error("Error al buscar usuario por correo:", error);
+        return null;
+    }
+    }
     async updateUserName(id, nombre) {
         try {
             const result = await this.db.runAsync(
