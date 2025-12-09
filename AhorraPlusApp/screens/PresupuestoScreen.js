@@ -23,12 +23,24 @@ export default function PresupuestoScreen() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  
+  const [textoBusqueda, setTextoBusqueda] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("todas");
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [modalFiltroFecha, setModalFiltroFecha] = useState(false);
+
+  const categorias = ["Comida", "Transporte", "Casa", "Entretenimiento", "Salud", "Otros"];
+
+
   const getCurrentMonth = () => {
     const now = new Date();
     return now.toISOString().slice(0, 7);
   };
 
-useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       let isActive = true;
 
@@ -44,16 +56,16 @@ useFocusEffect(
     }, [])
   );
 
-useEffect(() => {
-  if (!userId) return;
-  fetchBudgets(userId);
-}, [userId]);
+  useEffect(() => {
+    if (!userId) return;
+    fetchBudgets(userId);
+  }, [userId]);
 
   const fetchBudgets = async (id) => {
     setLoading(true);
     const allBudgets = await BudgetController.getAll(id);
     const allTransactions = await TransactionController.getAll(id);
-    
+
     const budgetsWithProgress = allBudgets.map(b => {
       const gastado = allTransactions
         .filter(t =>
@@ -66,12 +78,12 @@ useEffect(() => {
     });
 
     budgetsWithProgress.forEach(b => {
-    if (b.gastado > b.monto) {
-      sendNotificationToDashboard(
-        `Presupuesto excedido en ${b.descripcion}. Límite: $${b.monto}, Gastado: $${b.gastado}`
-      );
-    }
-  });
+      if (b.gastado > b.monto) {
+        sendNotificationToDashboard(
+          `Presupuesto excedido en ${b.descripcion}. Límite: $${b.monto}, Gastado: $${b.gastado}`
+        );
+      }
+    });
 
     setBudgets(budgetsWithProgress);
     setLoading(false);
@@ -106,20 +118,20 @@ useEffect(() => {
   }
 
   const sendNotificationToDashboard = async (message) => {
-  try {
-    const current = await AsyncStorage.getItem('user_notifications');
-    const parsed = current ? JSON.parse(current) : [];
-    
-    const exists = parsed.some(notif => notif.text === message);
-    
-    if (!exists) {
-      const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
-      const updated = [newNotif, ...parsed];
-      await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
-    }
-   } catch (e) {
+    try {
+      const current = await AsyncStorage.getItem('user_notifications');
+      const parsed = current ? JSON.parse(current) : [];
+
+      const exists = parsed.some(notif => notif.text === message);
+
+      if (!exists) {
+        const newNotif = { id: Date.now(), text: message, date: new Date().toLocaleDateString() };
+        const updated = [newNotif, ...parsed];
+        await AsyncStorage.setItem('user_notifications', JSON.stringify(updated));
+      }
+    } catch (e) {
       console.error("Error guardando notificación", e);
-   }
+    }
   };
 
   const openNew = async () => {
@@ -150,6 +162,53 @@ useEffect(() => {
     setInputMes(''); setMonto(''); setInputDescripcion(''); setIsEditing(false); setCurrentId(null);
   };
 
+
+  const validarFechas = (fi, ff) => {
+    const r = /^\d{4}-\d{2}-\d{2}$/;
+    if (!r.test(fi) || !r.test(ff)) return false;
+    return new Date(fi) <= new Date(ff);
+  };
+
+  const limpiarFiltros = () => {
+    setSelectedCategory("todas");
+    setTextoBusqueda("");
+    setFechaInicio("");
+    setFechaFin("");
+    if (userId) fetchBudgets(userId);
+  };
+
+  const presupuestosFiltrados = budgets.filter((b) => {
+ 
+    if (selectedCategory !== "todas") {
+  
+      if (b.descripcion.trim().toLowerCase() !== selectedCategory.toLowerCase()) {
+        return false;
+      }
+    }
+
+ 
+    if (textoBusqueda.trim() !== "") {
+      const txt = textoBusqueda.toLowerCase().trim();
+      const desc = (b.descripcion || "").toLowerCase();
+   
+      const mes = (b.mes || "");
+      if (!desc.includes(txt) && !mes.includes(txt)) return false;
+    }
+
+
+    if (fechaInicio && fechaFin) {
+  
+      const bDate = new Date(b.mes + "-01");
+      const fInicio = new Date(fechaInicio);
+      const fFin = new Date(fechaFin);
+
+      if (bDate < fInicio || bDate > fFin) return false;
+    }
+
+    return true;
+  });
+
+
   const getBarColor = (p) => p >= 100 ? '#EF4444' : p >= 75 ? '#F59E0B' : '#22C55E';
 
   return (
@@ -160,17 +219,48 @@ useEffect(() => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContenido}>
+
+      
+        <TextInput
+          style={styles.busqueda}
+          placeholder="Buscar presupuesto"
+          value={textoBusqueda}
+          onChangeText={setTextoBusqueda}
+        />
+
+       
+        <View style={styles.botonera}>
+          <TouchableOpacity
+            style={styles.openFilterButton}
+            onPress={() => setCategoryModalVisible(true)}>
+            <Text style={styles.openFilterButtonText}>Filtrar Categoría</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.openFilterButton}
+            onPress={() => setModalFiltroFecha(true)}>
+            <Text style={styles.openFilterButtonText}>Filtrar Fechas</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.infoContainer}>
           <Text style={styles.subtitulo}>Administra tus límites (Máx 4)</Text>
         </View>
 
         <View style={styles.contenedorDeTodasLasTransacciones}>
-          {budgets.length === 0 ? (
+
+          <TouchableOpacity
+            style={styles.botonLimpiarFiltros}
+            onPress={limpiarFiltros}>
+            <Text style={styles.textoLimpiarFiltros}>Recargar</Text>
+          </TouchableOpacity>
+
+          {presupuestosFiltrados.length === 0 ? (
             <Text style={{ textAlign: "center", marginTop: 20, color: "#555" }}>
-              {loading ? "Cargando..." : "No hay presupuestos."}
+              {loading ? "Cargando..." : "No hay presupuestos registrados."}
             </Text>
           ) : (
-            budgets.map((b, index) => {
+            presupuestosFiltrados.map((b, index) => {
               const porcentaje = Math.min((b.gastado / b.monto) * 100, 100);
               const color = getBarColor(porcentaje);
 
@@ -207,7 +297,7 @@ useEffect(() => {
                     </View>
                   </View>
 
-                  {/* --- BOTONES DE TEXTO AQUÍ --- */}
+          
                   <View style={styles.botonesAccionContainer}>
                     <TouchableOpacity onPress={() => openEdit(b)} style={styles.botonEditarItem}>
                       <Text style={styles.textoBotonAccion}>Editar</Text>
@@ -224,7 +314,7 @@ useEffect(() => {
         </View>
       </ScrollView>
 
-      {/* Modal */}
+     
       <Modal animationType='none' transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContenido}>
@@ -245,6 +335,87 @@ useEffect(() => {
               </TouchableOpacity>
               <TouchableOpacity style={[styles.botonBase, styles.botonGuardar]} onPress={handleSave}>
                 <Text style={styles.botonGuardarTexto}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+    
+      <Modal visible={categoryModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainerFilter}>
+            <Text style={styles.modalTitle}>Filtrar por Categoría</Text>
+            <ScrollView style={{ maxHeight: 300 }}>
+              <TouchableOpacity
+                style={[styles.filterOption, selectedCategory === "todas" && styles.optionActive]}
+                onPress={() => {
+                  setSelectedCategory("todas");
+                  setCategoryModalVisible(false);
+                }}>
+                <Text style={[styles.filterOptionText, selectedCategory === "todas" && styles.optionActiveText]}>
+                  Todas
+                </Text>
+              </TouchableOpacity>
+              {categorias.map((cat, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.filterOption, selectedCategory === cat && styles.optionActive]}
+                  onPress={() => {
+                    setSelectedCategory(cat);
+                    setCategoryModalVisible(false);
+                  }}>
+                  <Text style={[styles.filterOptionText, selectedCategory === cat && styles.optionActiveText]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setCategoryModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+  
+      <Modal visible={modalFiltroFecha} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Filtrar por Fecha</Text>
+            <Text style={styles.labelInput}>Desde (YYYY-MM-DD)</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="2025-01-01"
+              value={fechaInicio}
+              onChangeText={setFechaInicio}
+            />
+            <Text style={styles.labelInput}>Hasta (YYYY-MM-DD)</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="2025-12-31"
+              value={fechaFin}
+              onChangeText={setFechaFin}
+            />
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={styles.btnCancel}
+                onPress={() => setModalFiltroFecha(false)}>
+                <Text style={styles.btnCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.btnSave}
+                onPress={() => {
+               
+                  if (fechaInicio && fechaFin && !validarFechas(fechaInicio, fechaFin)) {
+                    Alert.alert("Error", "Fechas inválidas");
+                    return;
+                  }
+                  setModalFiltroFecha(false);
+                }}>
+                <Text style={styles.btnSaveText}>Aplicar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -481,4 +652,120 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fdecea"
   },
+
+  busqueda: {
+    backgroundColor: "#fff",
+    marginHorizontal: 15,
+    marginTop: 15,
+    paddingHorizontal: 10,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    marginBottom: 10
+  },
+  botonera: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 5
+  },
+  openFilterButton: {
+    backgroundColor: "#d8c242ff",
+    padding: 10,
+    borderRadius: 10,
+    width: "45%",
+    alignItems: "center"
+  },
+  openFilterButtonText: { color: "black", fontWeight: "bold", fontSize:15},
+  botonLimpiarFiltros: {
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    marginBottom: 10
+  },
+  textoLimpiarFiltros: { color: '#007AFF', fontWeight: 'bold' },
+ 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  modalCard: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 22,
+    borderRadius: 16,
+    elevation: 10
+  },
+  modalContainerFilter: {
+    width: "85%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 20
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 5,
+    marginBottom: 15
+  },
+  filterOption: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee"
+  },
+  optionActive: {
+    backgroundColor: "#d8c242ff"
+  },
+  filterOptionText: {
+    fontSize: 16,
+    color: "#333"
+  },
+  optionActiveText: {
+    color: "black",
+    fontWeight: "bold"
+  },
+  closeButton: {
+    marginTop: 15,
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "black",
+    borderRadius: 8
+  },
+  closeButtonText: {
+    fontWeight: "bold",
+    color: "#fff"
+  },
+  modalButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10
+  },
+  btnCancel: {
+    flex: 1,
+    backgroundColor: "#f3f3f3",
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginRight: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc"
+  },
+  btnCancelText: { color: "#333", fontWeight: "bold" },
+  btnSave: {
+    flex: 1,
+    backgroundColor: '#d8c242ff',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center'
+  },
+  btnSaveText: { color: "#000", fontWeight: "bold" }
 });

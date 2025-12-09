@@ -598,24 +598,24 @@ const styles = StyleSheet.create({
   },
 
   botonAbrirModal: {
-    backgroundColor: "#333",
+    backgroundColor: "#d8c242ff",
     padding: 10,
     borderRadius: 10,
     width: "40%",
     alignItems: "center"
   },
 
-  textoAbrirModal: { color: "#fff", fontWeight: "bold" },
+  textoAbrirModal: { color: "black", fontWeight: "bold", fontSize:15 },
 
   openFilterButton: {
-    backgroundColor: "#333",
+    backgroundColor: "#d8c242ff",
     padding: 10,
     borderRadius: 10,
     width: "40%",
     alignItems: "center"
   },
 
-  openFilterButtonText: { color: "#fff", fontWeight: "bold" },
+  openFilterButtonText: { color: "black", fontWeight: "bold",fontSize:14 },
 
   contenedorDeTodasLasTransacciones: {
     marginTop: 20,
@@ -801,14 +801,14 @@ const styles = StyleSheet.create({
 
   btnSave: {
     flex: 1,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#d8c242ff",
     paddingVertical: 12,
     borderRadius: 10,
     marginLeft: 8,
     alignItems: "center"
   },
 
-  btnSaveText: { color: "#fff", 
+  btnSaveText: { color: "black", 
   fontWeight: "bold" },
 
   filterOption: {
@@ -822,8 +822,8 @@ const styles = StyleSheet.create({
   fontSize: 16 },
 
   optionActive: {
-   backgroundColor: "#333" },
-  optionActiveText: { color: "#fff",
+   backgroundColor: "#d8c242ff" },
+  optionActiveText: { color: "black",
   fontWeight: "bold" },
 
   closeButton: {
@@ -846,19 +846,19 @@ const styles = StyleSheet.create({
   },
 
   botonMinimalActivo: { 
-  backgroundColor: "#333" },
+  backgroundColor: "#d8c242ff" },
 
   botonMinimalTexto: { fontSize: 16, 
   textAlign: "center" },
 
-  botonMinimalTextoActivo: { color: "#fff",
+  botonMinimalTextoActivo: { color: "black",
    fontWeight: "bold" },
 
   botonCancelar: {
     marginTop: 10,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: "#999"
+    backgroundColor: "black"
   },
 
   cancelarText: { color: "#fff", 
