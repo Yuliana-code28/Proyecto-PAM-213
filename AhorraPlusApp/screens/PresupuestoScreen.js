@@ -37,7 +37,7 @@ export default function PresupuestoScreen() {
 
   const getCurrentMonth = () => {
     const now = new Date();
-    return now.toISOString().slice(0, 7);
+    return new Date().toISOString().slice(0, 10);
   };
 
   useFocusEffect(
@@ -48,6 +48,7 @@ export default function PresupuestoScreen() {
         const user = await UserController.getLoggedUser();
         if (user && isActive) {
           setUserId(user.id);
+          fetchBudgets(user.id);
         }
       };
 
