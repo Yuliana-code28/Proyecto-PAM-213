@@ -20,6 +20,7 @@ export default function TransaccionesScreen() {
   const [addCategoria, setAddCategoria] = useState('');
   const [addMonto, setAddMonto] = useState('');
   const [addEsGasto, setAddEsGasto] = useState(true);
+  const [addFecha, setAddFecha] = useState('');
 
   const [editTransaccion, setEditTransaccion] = useState('');
   const [editCategoria, setEditCategoria] = useState('');
@@ -111,11 +112,15 @@ export default function TransaccionesScreen() {
   };
 
   const handleAdd = async () => {
-    if (!addTransaccion || !addCategoria || !addMonto)
+    if (!addTransaccion || !addCategoria || !addMonto || !addFecha)
       return Alert.alert("Error", "Completa todos los campos.");
 
     const tipo = addEsGasto ? "gasto" : "ingreso";
-    const fecha = new Date().toISOString().split("T")[0];
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(addFecha)) {
+      return Alert.alert("Error", "Formato de fecha inválido (YYYY-MM-DD)")
+    }
 
     const result = await TransactionController.add(
       userId,
@@ -123,7 +128,7 @@ export default function TransaccionesScreen() {
       addCategoria,
       addTransaccion,
       tipo,
-      fecha
+      addFecha
     );
  
     if (result.success && result.alertMessage) {
@@ -166,6 +171,7 @@ export default function TransaccionesScreen() {
     setAddCategoria('');
     setAddMonto('');
     setAddEsGasto(true);
+    setAddFecha(new Date().toISOString().split("T")[0]);
   };
 
   const resetEditFields = () => {
@@ -293,6 +299,7 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Descripción"
+              placeholderTextColor="#a4a4a4ff"
               value={addTransaccion}
               onChangeText={setAddTransaccion}
             />
@@ -300,6 +307,7 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Categoría"
+              placeholderTextColor="#a4a4a4ff"
               value={addCategoria}
               onChangeText={setAddCategoria}
             />
@@ -307,10 +315,18 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Monto"
+              placeholderTextColor="#a4a4a4ff"
               keyboardType="numeric"
               value={addMonto}
               onChangeText={setAddMonto}
             />
+
+            <TextInput 
+              style={styles.modalInput} 
+              placeholder="Fecha (YYYY-MM-DD)" 
+              placeholderTextColor="#a4a4a4ff"
+              value={addFecha} 
+              onChangeText={setAddFecha} />
 
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>Gasto</Text>
@@ -350,6 +366,7 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Descripción"
+              placeholderTextColor="#a4a4a4ff"
               value={editTransaccion}
               onChangeText={setEditTransaccion}
             />
@@ -357,6 +374,7 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Categoría"
+              placeholderTextColor="#a4a4a4ff"
               value={editCategoria}
               onChangeText={setEditCategoria}
             />
@@ -364,10 +382,18 @@ export default function TransaccionesScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Monto"
+              placeholderTextColor="#a4a4a4ff"
               value={editMonto}
               keyboardType="numeric"
               onChangeText={setEditMonto}
             />
+
+            <TextInput 
+              style={styles.modalInput} 
+              placeholder="Fecha (YYYY-MM-DD)" 
+              placeholderTextColor="#a4a4a4ff"
+              value={addFecha} 
+              onChangeText={setAddFecha} />
 
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>Gasto</Text>
@@ -766,7 +792,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 10,
     padding: 10,
-    marginTop: 12
+    marginTop: 12,
+    color: '#000000ff',
   },
 
   switchRow: {
