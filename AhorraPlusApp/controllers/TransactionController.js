@@ -29,9 +29,11 @@ export class TransactionController {
   }
 
   async add(userId, monto, categoria, descripcion, tipo, fecha) {
-    if (!userId) throw new Error("Usuario no identificado");
   
     try {
+      
+      if (!userId) throw new Error("Usuario no identificado");
+
       Transaction.validar(monto, categoria);
   
       const transRaw = await DatabaseService.addTransaction(

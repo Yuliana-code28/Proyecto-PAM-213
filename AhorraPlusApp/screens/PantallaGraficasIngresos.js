@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { PieChart } from "react-native-chart-kit";
 import { useFocusEffect } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
+import { useAuth } from '../contexto/AuthContext';
  
 const maleta = require('../assets/imagen/maleta.png');
 
@@ -13,9 +15,15 @@ const coloresTipos = {
 };
 
 export default function PantallaGraficasIngresos({ navigation }) {
+
+
+  const { user } = useAuth();
+  const userId = user ? user.id : null;
+
   const [transactions, setTransactions] = useState([]);
-  const [userId, setUserId] = useState(null);
+  // const [userId, setUserId] = useState(null);
   const [activo, setActivo] = useState('ingresos');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const loadUser = async () => {
@@ -36,11 +44,30 @@ export default function PantallaGraficasIngresos({ navigation }) {
     }, [userId])
   );
 
-  const totalGastos = transactions
+  const changeMonth = (increment) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + increment);
+    setCurrentDate(newDate);
+  };
+
+  // Etiquetas de fecha
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  const monthLabel = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+  // Filtro
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const filterKey = `${year}-${month}`;
+
+  const filteredTransactions = transactions.filter(t => t.fecha.startsWith(filterKey));
+
+  const totalGastos = filteredTransactions
     .filter(t => t.tipo.toLowerCase().trim() === 'gasto')
     .reduce((suma, t) => suma + parseFloat(t.monto), 0);
 
-  const totalIngresos = transactions
+  const totalIngresos = filteredTransactions
     .filter(t => t.tipo.toLowerCase().trim() === 'ingreso')
     .reduce((suma, t) => suma + parseFloat(t.monto), 0);
 
@@ -104,6 +131,18 @@ export default function PantallaGraficasIngresos({ navigation }) {
       </View>
       
       <ScrollView contentContainerStyle={styles.scrollContenido}>
+        
+        {/* Selector de Mes */}
+        <View style={styles.dateSelector}>
+            <TouchableOpacity onPress={() => changeMonth(-1)}>
+                <Ionicons name="chevron-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.dateText}>{monthLabel}</Text>
+            <TouchableOpacity onPress={() => changeMonth(1)}>
+                <Ionicons name="chevron-forward" size={24} color="#000" />
+            </TouchableOpacity>
+        </View>
+
         <View style={styles.contenedor2}>
           <Text style={styles.tituloGrafica}>Ingresos vs Gastos</Text>
           <Text style={[styles.dinero, { color: balance >= 0 ? '#22C55E' : '#EF4444' }]}>
@@ -125,7 +164,7 @@ export default function PantallaGraficasIngresos({ navigation }) {
               hasLegend={false}
             />
           ) : (
-            <Text style={{marginTop: 20, color: '#777'}}>No hay datos suficientes</Text>
+            <Text style={{marginTop: 20, color: '#777'}}>No hay movimientos en este mes</Text>
           )}
         </View>
 
@@ -149,7 +188,6 @@ export default function PantallaGraficasIngresos({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  
   container: {
     flex: 1,
     backgroundColor: '#e5dcb9ff',
@@ -158,7 +196,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 40,
   },
-
   titulo: {
     width: '100%',
     backgroundColor: '#fff',
@@ -180,7 +217,6 @@ const styles = StyleSheet.create({
     right: 10,
     marginTop: 40,
   },
-
   pestanas: {
     flexDirection: 'row',
     backgroundColor: '#eee',
@@ -206,9 +242,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-
+  dateSelector: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    padding: 10,
+    borderRadius: 15,
+    elevation: 2
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 20,
+    color: '#000'
+  },
   contenedor2: {
-    marginTop: 40,
+    marginTop: 20,
     marginHorizontal: 20,
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -225,8 +277,6 @@ const styles = StyleSheet.create({
     color: "#E4B100",
     padding: 10,
   },
-
- 
   contenedorDesglose: {
     marginTop: 30,
     marginHorizontal: 20,
@@ -257,4 +307,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     paddingRight: 10,
   },
-});
+});   

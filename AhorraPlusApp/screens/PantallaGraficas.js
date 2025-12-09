@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { PieChart } from "react-native-chart-kit";
 import { useFocusEffect } from '@react-navigation/native';
-import TransactionController from '../controllers/TransactionController'; // Importar controlador
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
+import { useAuth } from '../contexto/AuthContext';
 
 const maleta = require('../assets/imagen/maleta.png');
 
@@ -28,9 +30,14 @@ const getRandomColor = () => {
 };
 
 export default function PantallaGraficas({ navigation }) {
+
+  const { user } = useAuth();
+  const userId = user ? user.id : null;
+
   const [transactions, setTransactions] = useState([]);
-  const [userId, setUserId] = useState(null);
+  // const [userId, setUserId] = useState(null);
   const [activo, setActivo] = useState('gastos');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const loadUser = async () => {
@@ -51,7 +58,26 @@ export default function PantallaGraficas({ navigation }) {
     }, [userId])
   );
 
-  const gastosPorCategoria = transactions
+  const changeMonth = (increment) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + increment);
+    setCurrentDate(newDate);
+  };
+
+  // Obtener etiqueta del mes (ej: "Diciembre 2025")
+  const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  const monthLabel = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+  // Clave de filtro (ej: "2025-12")
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const filterKey = `${year}-${month}`;
+
+  const filteredTransactions = transactions.filter(t => t.fecha.startsWith(filterKey));
+
+  const gastosPorCategoria = filteredTransactions
     .filter(t => t.tipo.toLowerCase().trim() === 'gasto')
     .reduce((acc, t) => {
       const catNombre = t.categoria.trim();
@@ -112,6 +138,18 @@ export default function PantallaGraficas({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContenido}>
+        
+        {/* Selector de Mes */}
+        <View style={styles.dateSelector}>
+            <TouchableOpacity onPress={() => changeMonth(-1)}>
+                <Ionicons name="chevron-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.dateText}>{monthLabel}</Text>
+            <TouchableOpacity onPress={() => changeMonth(1)}>
+                <Ionicons name="chevron-forward" size={24} color="#000" />
+            </TouchableOpacity>
+        </View>
+
         <View style={styles.contenedor2}>
           <Text style={styles.tituloGrafica}>Gastos por Categoría</Text>
           <Text style={styles.dinero}>{formatMoney(total)}</Text>
@@ -131,7 +169,7 @@ export default function PantallaGraficas({ navigation }) {
                 hasLegend={false}
             />
           ) : (
-            <Text style={{marginTop: 20, color: '#777'}}>No hay gastos registrados</Text>
+            <Text style={{marginTop: 20, color: '#777'}}>No hay gastos en este mes</Text>
           )}
         </View>
 
@@ -160,7 +198,6 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#e5dcb9ff' 
   },
-
   scrollContenido: { 
     flexGrow: 1, 
     paddingBottom: 40 
@@ -211,8 +248,25 @@ const styles = StyleSheet.create({
     color: '#fff', 
     fontWeight: 'bold' 
   },
+  dateSelector: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    padding: 10,
+    borderRadius: 15,
+    elevation: 2
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 20,
+    color: '#000'
+  },
   contenedor2: { 
-    marginTop: 40, 
+    marginTop: 20, 
     marginHorizontal: 20,
     backgroundColor: '#fff', 
     borderRadius: 14, 

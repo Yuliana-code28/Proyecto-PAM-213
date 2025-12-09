@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {  Text, View, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, Switch} from 'react-native';
-
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
+import { useAuth } from '../contexto/AuthContext';
 
 const filtro = require('../assets/imagen/filtrar.png');
 const iconoGasto = require('../assets/imagen/gastos3.png');
@@ -10,6 +10,9 @@ const iconoIngreso = require('../assets/imagen/ingresos2.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
 
 export default function TransaccionesScreen() {
+
+  const { user } = useAuth();
+  const userId = user ? user.id : null;
 
   const [transactions, setTransactions] = useState([]);
 
@@ -28,7 +31,7 @@ export default function TransaccionesScreen() {
   const [editEsGasto, setEditEsGasto] = useState(true);
 
   const [transactionToEdit, setTransactionToEdit] = useState(null);
-  const [userId, setUserId] = useState(null);
+
 
   const [textoBusqueda, setTextoBusqueda] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
@@ -387,13 +390,6 @@ export default function TransaccionesScreen() {
               keyboardType="numeric"
               onChangeText={setEditMonto}
             />
-
-            <TextInput 
-              style={styles.modalInput} 
-              placeholder="Fecha (YYYY-MM-DD)" 
-              placeholderTextColor="#a4a4a4ff"
-              value={addFecha} 
-              onChangeText={setAddFecha} />
 
             <View style={styles.switchRow}>
               <Text style={styles.switchText}>Gasto</Text>

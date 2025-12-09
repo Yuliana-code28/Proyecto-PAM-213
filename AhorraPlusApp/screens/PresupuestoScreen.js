@@ -5,12 +5,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BudgetController from '../controllers/BudgetController';
 import TransactionController from '../controllers/TransactionController';
 import UserController from "../controllers/UserController";
+import { useAuth } from '../contexto/AuthContext';
 
 const filtro = require('../assets/imagen/filtrar.png');
 const agregarIcono = require('../assets/imagen/agregar.png');
 const iconoMeta = require('../assets/imagen/meta.jpg');
 
 export default function PresupuestoScreen() {
+
+  const { user } = useAuth();
+  const userId = user ? user.id : null;
+
   const [budgets, setBudgets] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -20,7 +25,6 @@ export default function PresupuestoScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
 
-  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   
